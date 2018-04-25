@@ -48,14 +48,25 @@ jobs:
     docker:
       - image: hootenanny/rpmbuild-hoot-release:git065b4f9
     steps:
+      - restore_cache:
+          keys:
+            - source-v1-{{ .Branch }}-{{ .Revision }}
+            - source-v1-{{ .Branch }}-
+            - source-v1-
+      - restore_cache:
+          keys:
+            - hoot-archive-v0.2.39-1
+      - restore_cache:
+          keys:
+            - m2-v0.2.39-1-hootenanny-{{ .Branch }}
+            - m2-v0.2.39-1-hootenanny-
       - run:
           name: Create Archive
           command: |
             set -exuo pipefail
             su-exec postgres pg_ctl -D $PGDATA -s start
-            chown -R rpmbuild:rpmbuild /rpmbuild/hootenanny
             su-exec rpmbuild ls -lah /rpmbuild/hootenanny/
-
+            su-exec rpmbuild ls -lah /rpmbuild/hoot-archive.sh
 
 workflows:
   version: 2
