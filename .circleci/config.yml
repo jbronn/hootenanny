@@ -20,14 +20,14 @@ jobs:
             - '.git'
       - restore_cache:
           keys:
-            - hoot-archive-v0.2.39-1
+            - hoot-archive-v0.2.39-2
       - run:
           name: 'Download Archive Script'
           command: |
             set -exuo pipefail
             if [ ! -x ~/hoot-archive.sh ]; then cd ~ && curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh && chmod +x hoot-archive.sh; fi
       - save_cache:
-          key: hoot-archive-v0.2.39-1
+          key: hoot-archive-v0.2.39-2
           paths:
             - '~/hoot-archive.sh'
       - restore_cache:
@@ -55,7 +55,7 @@ jobs:
             - source-v1-
       - restore_cache:
           keys:
-            - hoot-archive-v0.2.39-1
+            - hoot-archive-v0.2.39-2
       - restore_cache:
           keys:
             - m2-v0.2.39-1-hootenanny-{{ .Branch }}
