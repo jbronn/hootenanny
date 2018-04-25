@@ -5,7 +5,7 @@ jobs:
   build:
     working_directory: '~/hootenanny'
     docker:
-      - image: hootenanny/rpmbuild-hoot-release:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
+      - image: hootenanny/rpmbuild-hoot-release:git065b4f9
         user: rpmbuild
     steps:
       - restore_cache:
@@ -47,7 +47,7 @@ jobs:
   test:
     working_directory: '~/hootenanny'
     docker:
-      - image: hootenanny/rpmbuild-hoot-release:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
+      - image: hootenanny/rpmbuild-hoot-release:git065b4f9
         user: rpmbuild
     steps:
       - run:
