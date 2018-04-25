@@ -32,15 +32,15 @@ jobs:
             - '~/hoot-archive.sh'
       - restore_cache:
           keys:
-            - m2-v1-hootenanny-{{ .Branch }}
-            - m2-v1-hootenanny-
+            - m2-v0.2.39-hootenanny-{{ .Branch }}
+            - m2-v0.2.39-hootenanny-
       - run:
           name: 'Download and Extract Maven Cache'
           command: |
             set -exuo pipefail
             if [ ! -d ~/.m2/repository ]; then mkdir -p ~/.m2 && cd ~/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -; fi
       - save_cache:
-          key: m2-v1-hootenanny-{{ .Branch }}
+          key: m2-v0.2.39-hootenanny-{{ .Branch }}
           paths:
             - '~/m2'
   test:
