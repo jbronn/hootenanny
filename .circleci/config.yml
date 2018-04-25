@@ -14,6 +14,7 @@ jobs:
             - source-v1-{{ .Branch }}-
             - source-v1-
       - checkout
+      - run: git submodule update --init --recursive
       - save_cache:
           key: source-v1-{{ .Branch }}-{{ .Revision }}
           paths:
@@ -65,7 +66,7 @@ jobs:
           command: |
             set -exuo pipefail
             su-exec postgres pg_ctl -D $PGDATA -s start
-            su-exec rpmbuild ls -lah /rpmbuild/hootenanny/
+            su-exec rpmbuild bash -c "cd /rpmbuild/hootenanny && git checkout ${CIRCLE_SHA1} && git submodule update --recursive"
             su-exec rpmbuild /rpmbuild/hoot-archive.sh
 
 workflows:
