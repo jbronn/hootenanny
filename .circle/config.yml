@@ -28,8 +28,9 @@ jobs:
 
 workflows:
   version: 2
-  jobs:
-    - build
-    - test:
-        requires:
-          - build
+  build-test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
