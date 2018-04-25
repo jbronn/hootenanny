@@ -17,8 +17,15 @@ jobs:
           name: 'Download RPM Scripts'
           command: |
             set -exuo pipefail
-            if [ ! -d /rpmbuild/scripts ]; then mkdir -m 0755 -p /rpmbuild/scripts; fi
-            if [ ! -x /rpmbuild/scripts/hoot-archive.sh ]; then cd /rpmbuild/scripts && curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh && chmod +x hoot-archive.sh; fi
+            if [ ! -d /rpmbuild/scripts ]; then
+              mkdir -m 0755 -p /rpmbuild/scripts
+              chown rpmbuild:rpmbuild /rpmbuild/scripts
+            fi
+            if [ ! -x /rpmbuild/scripts/hoot-archive.sh ]; then
+              cd /rpmbuild/scripts
+              su-exec rpmbuild curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh
+              chmod +x hoot-archive.sh
+            fi
       - save_cache:
           key: hootenanny-rpms-scripts-v0.2.39
           paths:
