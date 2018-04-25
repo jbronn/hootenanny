@@ -47,16 +47,13 @@ jobs:
     working_directory: '/rpmbuild/hootenanny'
     docker:
       - image: hootenanny/rpmbuild-hoot-release:git065b4f9
-        user: rpmbuild
     steps:
       - run:
-          name: Hello
+          name: Create Archive
           command: |
-            echo "Hello, World!"
-      - run:
-          name: Start PostgreSQL
-          command: |
-            echo su-exec postgres pg_ctl -D $PGDATA -s start
+            set -exuo pipefail
+            su-exec postgres pg_ctl -D $PGDATA -s start
+            su-exec rpmbuild ls -lah /rpmbuild
 
 
 workflows:
