@@ -2,11 +2,10 @@
 version: 2
 
 jobs:
-  build:
+  archive:
     working_directory: '/rpmbuild/hootenanny'
     docker:
       - image: hootenanny/rpmbuild-hoot-release:git065b4f9
-        user: rpmbuild
     steps:
       - restore_cache:
           keys:
@@ -15,65 +14,39 @@ jobs:
             - source-v1-
       - checkout
       - run: git submodule update --init --recursive
-      - save_cache:
-          key: source-v1-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - '.git'
-      - restore_cache:
-          keys:
-            - hoot-archive-v0.2.39-2
+      - run: chmod -R rpmbuild:rpmbuild .
       - run:
-          name: 'Download Archive Script'
+          name: 'Download RPM Scripts'
           command: |
             set -exuo pipefail
-            if [ ! -x /rpmbuild/hoot-archive.sh ]; then cd ~ && curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh && chmod +x hoot-archive.sh; fi
+            if [ ! -d /rpmbuild/scripts ]; then mkdir -m 0755 -p /rpmbuild/scripts; fi
+            if [ ! -x /rpmbuild/scripts/hoot-archive.sh ]; then cd /rpmbuild/scripts && curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh && chmod +x hoot-archive.sh; fi
       - save_cache:
-          key: hoot-archive-v0.2.39-2
+          key: hootenanny-rpms-scripts-v0.2.39
           paths:
-            - '/rpmbuild/hoot-archive.sh'
+            - '/rpmbuild/scripts/hoot-archive.sh'
       - restore_cache:
           keys:
-            - m2-v0.2.39-1-hootenanny-{{ .Branch }}
-            - m2-v0.2.39-1-hootenanny-
+            - hootenanny-m2-v0.2.39-{{ .Branch }}
+            - hootenanny-m2-v0.2.39-
       - run:
           name: 'Download and Extract Maven Cache'
           command: |
             set -exuo pipefail
-            if [ ! -d /rpmbuild/.m2/repository ]; then mkdir -p /rpmbuild/.m2 && cd /rpmbuild/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -; fi
+            if [ ! -d /rpmbuild/.m2/repository ]; then mkdir -p /rpmbuild/.m2 && cd /rpmbuild/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf - && chown -R rpmbuild:rpmbuild /rpmbuild/.m2; fi
       - save_cache:
-          key: m2-v0.2.39-1-hootenanny-{{ .Branch }}
+          key: hootenanny-m2-v0.2.39-{{ .Branch }}
           paths:
             - '/rpmbuild/.m2'
-  test:
-    working_directory: '/rpmbuild/hootenanny'
-    docker:
-      - image: hootenanny/rpmbuild-hoot-release:git065b4f9
-    steps:
-      - restore_cache:
-          keys:
-            - source-v1-{{ .Branch }}-{{ .Revision }}
-            - source-v1-{{ .Branch }}-
-            - source-v1-
-      - restore_cache:
-          keys:
-            - hoot-archive-v0.2.39-2
-      - restore_cache:
-          keys:
-            - m2-v0.2.39-1-hootenanny-{{ .Branch }}
-            - m2-v0.2.39-1-hootenanny-
       - run:
           name: Create Archive
           command: |
             set -exuo pipefail
             su-exec postgres pg_ctl -D $PGDATA -s start
-            su-exec rpmbuild bash -c "cd /rpmbuild/hootenanny && git clean -q -f -d -x && git checkout ${CIRCLE_SHA1} && git submodule update --init --recursive"
-            su-exec rpmbuild /rpmbuild/hoot-archive.sh
+            su-exec rpmbuild /rpmbuild/scripts/hoot-archive.sh
 
 workflows:
   version: 2
-  build-test:
+  archive:
     jobs:
-      - build
-      - test:
-          requires:
-            - build
+      - archive
