@@ -25,7 +25,7 @@ jobs:
           name: 'Download Archive Script'
           command: |
             set -exuo pipefail
-            if [ ! -x ~/hoot-archive.sh ]; then cd ~ && curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh; fi
+            if [ ! -x ~/hoot-archive.sh ]; then cd ~ && curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh && chmod +x hoot-archive.sh; fi
       - save_cache:
           key: hoot-archive-v0.2.39-1
           paths:
