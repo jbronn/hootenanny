@@ -26,11 +26,11 @@ jobs:
           name: 'Download Archive Script'
           command: |
             set -exuo pipefail
-            if [ ! -x ~/hoot-archive.sh ]; then cd ~ && curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh && chmod +x hoot-archive.sh; fi
+            if [ ! -x /rpmbuild/hoot-archive.sh ]; then cd ~ && curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh && chmod +x hoot-archive.sh; fi
       - save_cache:
           key: hoot-archive-v0.2.39-2
           paths:
-            - '~/hoot-archive.sh'
+            - '/rpmbuild/hoot-archive.sh'
       - restore_cache:
           keys:
             - m2-v0.2.39-1-hootenanny-{{ .Branch }}
@@ -39,11 +39,11 @@ jobs:
           name: 'Download and Extract Maven Cache'
           command: |
             set -exuo pipefail
-            if [ ! -d ~/.m2/repository ]; then mkdir -p ~/.m2 && cd ~/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -; fi
+            if [ ! -d /rpmbuild/.m2/repository ]; then mkdir -p /rpmbuild/.m2 && cd /rpmbuild/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -; fi
       - save_cache:
           key: m2-v0.2.39-1-hootenanny-{{ .Branch }}
           paths:
-            - '~/.m2'
+            - '/rpmbuild/.m2'
   test:
     working_directory: '/rpmbuild/hootenanny'
     docker:
