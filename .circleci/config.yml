@@ -18,9 +18,6 @@ jobs:
           key: source-v1-{{ .Branch }}-{{ .Revision }}
           paths:
             - '.git'
-      - restore_cache:
-          keys:
-            - hoot-archive-v0.2.39
       - run:
           name: 'Download Archive Script'
           command: |
@@ -30,10 +27,6 @@ jobs:
           key: hoot-archive-v0.2.39
           paths:
             - '~/hoot-archive.sh'
-      - restore_cache:
-          keys:
-            - m2-v1-hootenanny-{{ .Branch }}
-            - m2-v1-hootenanny-
       - run:
           name: 'Download and Extract Maven Cache'
           command: |
