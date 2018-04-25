@@ -14,7 +14,7 @@ jobs:
             - source-v1-
       - checkout
       - run: git submodule update --init --recursive
-      - run: chmod -R rpmbuild:rpmbuild .
+      - run: chown -R rpmbuild:rpmbuild .
       - run:
           name: 'Download RPM Scripts'
           command: |
