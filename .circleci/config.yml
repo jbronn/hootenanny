@@ -66,7 +66,7 @@ jobs:
             set -exuo pipefail
             su-exec postgres pg_ctl -D $PGDATA -s start
             su-exec rpmbuild ls -lah /rpmbuild/hootenanny/
-            su-exec rpmbuild ls -lah /rpmbuild/hoot-archive.sh
+            su-exec rpmbuild /rpmbuild/hoot-archive.sh
 
 workflows:
   version: 2
