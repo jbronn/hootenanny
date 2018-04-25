@@ -1,0 +1,15 @@
+---
+version: 2
+
+jobs:
+  build:
+    working_directory: '~/hootenanny'
+    docker:
+      - image: hootenanny/rpmbuild-hoot-release:latest
+        entrypoint:
+          - '/docker-entrypoint.sh'
+    steps:
+      - checkout
+      - run:
+          name: Hello
+          command: echo Hello, World!
