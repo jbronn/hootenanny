@@ -21,6 +21,7 @@ jobs:
       - image: hootenanny/rpmbuild-hoot-release:latest
         entrypoint:
           - '/docker-entrypoint.sh'
+    steps:
       - run:
           name: Hello
           command: |
