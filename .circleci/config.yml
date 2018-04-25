@@ -53,7 +53,8 @@ jobs:
           command: |
             set -exuo pipefail
             su-exec postgres pg_ctl -D $PGDATA -s start
-            su-exec rpmbuild ls -lah /rpmbuild
+            chown -R rpmbuild:rpmbuild /rpmbuild/hootenanny
+            su-exec rpmbuild ls -lah /rpmbuild/hootenanny/
 
 
 workflows:
