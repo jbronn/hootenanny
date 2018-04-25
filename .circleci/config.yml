@@ -3,11 +3,11 @@ version: 2
 
 jobs:
   build:
+    resource_class: 'medium+'
     working_directory: '~/hootenanny'
     docker:
       - image: hootenanny/rpmbuild-hoot-release:latest
-        entrypoint:
-          - '/docker-entrypoint.sh'
+        user: rpmbuild
     steps:
       - checkout
       - run:
@@ -16,6 +16,7 @@ jobs:
             mkdir -p ~/SOURCES
             curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh
   test:
+    resource_class: 'medium+'
     working_directory: '~/hootenanny'
     docker:
       - image: hootenanny/rpmbuild-hoot-release:latest
