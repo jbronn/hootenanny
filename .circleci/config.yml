@@ -53,6 +53,11 @@ jobs:
           name: Hello
           command: |
             echo "Hello, World!"
+      - run:
+          name: Start PostgreSQL
+          command: |
+            echo su-exec postgres pg_ctl -D $PGDATA -s start
+
 
 workflows:
   version: 2
