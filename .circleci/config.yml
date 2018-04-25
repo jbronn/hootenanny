@@ -7,11 +7,6 @@ jobs:
     docker:
       - image: hootenanny/rpmbuild-hoot-release:git065b4f9
     steps:
-      - restore_cache:
-          keys:
-            - source-v1-{{ .Branch }}-{{ .Revision }}
-            - source-v1-{{ .Branch }}-
-            - source-v1-
       - checkout
       - run: git submodule update --init --recursive
       - run: chown -R rpmbuild:rpmbuild .
@@ -44,6 +39,10 @@ jobs:
             set -exuo pipefail
             su-exec postgres pg_ctl -D $PGDATA -s start
             su-exec rpmbuild /rpmbuild/scripts/hoot-archive.sh
+            mkdir -p /tmp/archive
+            mv -v /rpmbuild/hootenanny/hootenanny-[0-9]*.tar.gz /tmp/archive
+      - store_artifacts:
+          path: /tmp/archive
 
 workflows:
   version: 2
