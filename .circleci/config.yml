@@ -40,9 +40,9 @@ jobs:
             set -exuo pipefail
             if [ ! -d ~/.m2/repository ]; then mkdir -p ~/.m2 && cd ~/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -; fi
       - save_cache:
-          key: m2-v0.2.39-hootenanny-{{ .Branch }}
+          key: m2-v0.2.39-1-hootenanny-{{ .Branch }}
           paths:
-            - '~/m2'
+            - '~/.m2'
   test:
     working_directory: '/rpmbuild/hootenanny'
     docker:
