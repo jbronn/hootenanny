@@ -12,4 +12,5 @@ jobs:
       - checkout
       - run:
           name: Hello
-          command: echo Hello, World!
+          command: |
+            echo "Hello, World!"
