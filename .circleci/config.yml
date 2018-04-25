@@ -3,25 +3,52 @@ version: 2
 
 jobs:
   build:
-    resource_class: 'medium+'
     working_directory: '~/hootenanny'
     docker:
-      - image: hootenanny/rpmbuild-hoot-release:latest
+      - image: hootenanny/rpmbuild-hoot-release:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
         user: rpmbuild
     steps:
+      - restore_cache:
+          keys:
+            - source-v1-{{ .Branch }}-{{ .Revision }}
+            - source-v1-{{ .Branch }}-
+            - source-v1-
       - checkout
+      - save_cache:
+          key: source-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - '.git'
+      - restore_cache:
+          keys:
+            - hoot-archive-v0.2.39
       - run:
           name: 'Download Archive Script'
           command: |
-            mkdir -p ~/SOURCES
-            curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh
+            set -exuo pipefail
+            cd ~ && curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh
+      - save_cache:
+          key: hoot-archive-v0.2.39
+          paths:
+            - '~/hoot-archive.sh'
+      - restore_cache:
+          keys:
+            - m2-v1-hootenanny-{{ .Branch }}
+            - m2-v1-hootenanny-
+      - run:
+          name: 'Download and Extract Maven Cache'
+          command: |
+            set -exuo pipefail
+            mkdir -p ~/.m2
+            cd ~/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -
+      - save_cache:
+          key: m2-v1-hootenanny-{{ .Branch }}
+          paths:
+            - '~/hoot-archive.sh'
   test:
-    resource_class: 'medium+'
     working_directory: '~/hootenanny'
     docker:
-      - image: hootenanny/rpmbuild-hoot-release:latest
-        entrypoint:
-          - '/docker-entrypoint.sh'
+      - image: hootenanny/rpmbuild-hoot-release:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
+        user: rpmbuild
     steps:
       - run:
           name: Hello
