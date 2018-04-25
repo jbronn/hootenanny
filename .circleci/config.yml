@@ -43,6 +43,7 @@ jobs:
             mv -v /rpmbuild/hootenanny/hootenanny-[0-9]*.tar.gz /tmp/archive
       - store_artifacts:
           path: /tmp/archive
+          destination: archives
 
 workflows:
   version: 2
