@@ -8,8 +8,11 @@ jobs:
       - image: hootenanny/rpmbuild-hoot-release:git065b4f9
     steps:
       - checkout
-      - run: git submodule update --init --recursive
-      - run: chown -R rpmbuild:rpmbuild .
+      - run:
+          name: 'Git Submodules'
+          command: |
+            git submodule update --init --recursive
+            chown -R rpmbuild:rpmbuild .
       - run:
           name: 'Download RPM Scripts'
           command: |
