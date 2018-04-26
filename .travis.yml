@@ -6,12 +6,19 @@ services:
   - docker
 
 before_install:
-  - sudo apt-get -y update
-  - sudo apt-get -y install curl
-  - docker pull hootenanny/rpmbuild-hoot-release:git065b4f9
   - git submodule update --init --recursive
-  - mkdir -m 0755 $HOME/{.m2,.npm,scripts,SOURCES}
-  - curl -sSL -o $HOME/scripts/hoot-archive.sh https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/scripts/hoot-archive.sh
+  - docker pull hootenanny/rpmbuild-hoot-release:git065b4f9
+  - mkdir -p -m 0755 $HOME/{.m2,.npm,scripts,SOURCES}
+  - if [ ! -x $HOME/scripts/hoot-archive.sh ]; then \
+      curl -sSL -o $HOME/scripts/hoot-archive.sh https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/scripts/hoot-archive.sh \
+      chmod +x hoot-archive.sh \
+    fi
+  - if [ ! -f $HOME/SPECS/hootenanny.spec ]; then \
+      curl -sSL -o $HOME/SPECS/hootenanny.spec https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/SPECS/hootenanny.spec \
+    fi
+  - if [ ! -d /rpmbuild/.m2/repository ]; then \
+      cd $HOME/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf - \
+    fi
 
 script:
   - docker run \
