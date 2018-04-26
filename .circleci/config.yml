@@ -17,7 +17,7 @@ jobs:
           name: 'Download RPM Scripts'
           command: |
             mkdir -m 0755 -p /rpmbuild/{scripts,SPECS}
-            chown rpmbuild:rpmbuild /rpmbuild/{scripts,SPECS
+            chown rpmbuild:rpmbuild /rpmbuild/{scripts,SPECS}
             if [ ! -x /rpmbuild/scripts/hoot-archive.sh ]; then
               cd /rpmbuild/scripts
               su-exec rpmbuild curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/scripts/hoot-archive.sh
