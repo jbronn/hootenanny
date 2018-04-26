@@ -37,7 +37,7 @@ jobs:
               su-exec rpmbuild bash -c "curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -"
             fi
       - run:
-          name: Create Archive
+          name: 'Create Archive'
           command: |
             su-exec postgres pg_ctl -D $PGDATA -s start
             su-exec rpmbuild /rpmbuild/scripts/hoot-archive.sh
