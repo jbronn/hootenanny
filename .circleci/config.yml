@@ -16,36 +16,29 @@ jobs:
       - run:
           name: 'Download RPM Scripts'
           command: |
-            if [ ! -d /rpmbuild/scripts ]; then
-              mkdir -m 0755 -p /rpmbuild/scripts
-              chown rpmbuild:rpmbuild /rpmbuild/scripts
-            fi
+            mkdir -m 0755 -p /rpmbuild/{scripts,SPECS}
+            chown rpmbuild:rpmbuild /rpmbuild/{scripts,SPECS
             if [ ! -x /rpmbuild/scripts/hoot-archive.sh ]; then
               cd /rpmbuild/scripts
-              su-exec rpmbuild curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/master/scripts/hoot-archive.sh
+              su-exec rpmbuild curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/scripts/hoot-archive.sh
               chmod +x hoot-archive.sh
             fi
-      - save_cache:
-          key: hootenanny-rpms-scripts-v0.2.39
-          paths:
-            - '/rpmbuild/scripts/hoot-archive.sh'
-      - restore_cache:
-          keys:
-            - hootenanny-m2-v0.2.39-{{ .Branch }}
-            - hootenanny-m2-v0.2.39-
+            if [ ! -f /rpmbuild/SPECS/hootenanny.spec ]; then
+              cd /rpmbuild/SPECS
+              su-exec rpmbuild curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/SPECS/hootenanny.spec
+            fi
       - run:
           name: 'Download and Extract Maven Cache'
           command: |
-            set -exuo pipefail
-            if [ ! -d /rpmbuild/.m2/repository ]; then mkdir -p /rpmbuild/.m2 && cd /rpmbuild/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf - && chown -R rpmbuild:rpmbuild /rpmbuild/.m2; fi
-      - save_cache:
-          key: hootenanny-m2-v0.2.39-{{ .Branch }}
-          paths:
-            - '/rpmbuild/.m2'
+            if [ ! -d /rpmbuild/.m2/repository ]; then
+              mkdir -p /rpmbuild/.m2
+              chown rpmbuild:rpmbuild /rpmbuild/.m2
+              cd /rpmbuild/.m2
+              su-exec rpmbuild bash -c "curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -"
+            fi
       - run:
           name: Create Archive
           command: |
-            set -exuo pipefail
             su-exec postgres pg_ctl -D $PGDATA -s start
             su-exec rpmbuild /rpmbuild/scripts/hoot-archive.sh
             mkdir -p /tmp/archive
