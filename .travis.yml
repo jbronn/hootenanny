@@ -9,19 +9,23 @@ before_install:
   - git submodule update --init --recursive
   - docker pull hootenanny/rpmbuild-hoot-release:git065b4f9
   - mkdir -p -m 0755 $HOME/{.m2,.npm,scripts,SOURCES}
-  - if [ ! -x $HOME/scripts/hoot-archive.sh ]; then \
-      curl -sSL -o $HOME/scripts/hoot-archive.sh https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/scripts/hoot-archive.sh && \
-      chmod +x hoot-archive.sh ; \
+  - |
+    if [ ! -x $HOME/scripts/hoot-archive.sh ]; then
+      curl -sSL -o $HOME/scripts/hoot-archive.sh https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/scripts/hoot-archive.sh
+      chmod +x hoot-archive.sh
     fi
-  - if [ ! -f $HOME/SPECS/hootenanny.spec ]; then \
-      curl -sSL -o $HOME/SPECS/hootenanny.spec https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/SPECS/hootenanny.spec ; \
+  - |
+    if [ ! -f $HOME/SPECS/hootenanny.spec ]; then
+      curl -sSL -o $HOME/SPECS/hootenanny.spec https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/SPECS/hootenanny.spec
     fi
-  - if [ ! -d /rpmbuild/.m2/repository ]; then \
-      cd $HOME/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf - \ ;
+  - |
+    if [ ! -d /rpmbuild/.m2/repository ]; then
+      cd $HOME/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -
     fi
 
 script:
-  - docker run \
+  - |
+    docker run \
       -v $HOME/scripts:/rpmbuild/scripts:ro \
       -v $HOME/SOURCES:/rpmbuild/SOURCES:rw \
       -v $HOME/.m2:/rpmbuild/.m2:rw \
