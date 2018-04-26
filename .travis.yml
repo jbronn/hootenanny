@@ -12,7 +12,7 @@ before_install:
   - |
     if [ ! -x $HOME/scripts/hoot-archive.sh ]; then
       curl -sSL -o $HOME/scripts/hoot-archive.sh https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/scripts/hoot-archive.sh
-      chmod +x hoot-archive.sh
+      chmod +x $HOME/scripts/hoot-archive.sh
     fi
   - |
     if [ ! -f $HOME/SPECS/hootenanny.spec ]; then
