@@ -19,15 +19,12 @@ before_install:
       curl -sSL -o $HOME/SPECS/hootenanny.spec https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/SPECS/hootenanny.spec
     fi
   - |
-    if [ ! -d /rpmbuild/.m2/repository ]; then
-      cd $HOME/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -
-    fi
+    cd $HOME/.m2
+    curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar xzf -
+  - sudo chown -R 1000:1000 $HOME/{.m2,.npm,scripts,SPECS,SOURCES} .
 
 script:
   - |
-    id
-    ls -lah .
-    ls -lah $HOME/scripts
     docker run \
       -v $HOME/scripts:/rpmbuild/scripts:ro \
       -v $HOME/SOURCES:/rpmbuild/SOURCES:rw \
