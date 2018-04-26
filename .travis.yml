@@ -33,4 +33,4 @@ script:
       -v $(pwd):/rpmbuild/hootenanny:rw \
       -it --rm \
       hootenanny/rpmbuild-hoot-release:git065b4f9 \
-      /rpmbuild/scripts/hoot-archive.sh
+      /bin/bash -c "set -x && id && pwd && ls -lah && /rpmbuild/scripts/hoot-archive.sh"
