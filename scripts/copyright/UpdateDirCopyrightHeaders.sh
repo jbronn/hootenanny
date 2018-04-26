@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 exitCode=0
 
 if [ -a LicenseTemplate.txt ] ; then

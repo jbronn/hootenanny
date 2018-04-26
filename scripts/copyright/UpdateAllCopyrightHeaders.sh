@@ -15,6 +15,7 @@
 #    9 = Unrecognized updateMode.
 #   10 = Python error(s) found.
 #   11 = Log file not found.
+set -x
 
 GetExitCodeText(){
     if [ $1 > 0 ]; then
