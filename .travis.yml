@@ -8,7 +8,7 @@ services:
 before_install:
   - sudo apt-get -y update
   - sudo apt-get -y install curl
-  - docker pull hootenanny/rpmbuild-hoot-release:git065b4f
+  - docker pull hootenanny/rpmbuild-hoot-release:git065b4f9
   - git submodule update --init --recursive
   - mkdir -m 0755 $HOME/{.m2,.npm,scripts,SOURCES}
   - curl -sSL -o $HOME/scripts/hoot-archive.sh https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/scripts/hoot-archive.sh
@@ -21,5 +21,5 @@ script:
       -v $HOME/.npm:/rpmbuild/.npm:rw \
       -v $(pwd):/rpmbuild/hootenanny:rw \
       -it --rm \
-      hootenanny/rpmbuild-hoot-release:git065b4f \
+      hootenanny/rpmbuild-hoot-release:git065b4f9 \
       /rpmbuild/scripts/hoot-archive.sh
