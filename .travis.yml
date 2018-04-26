@@ -25,13 +25,14 @@ install: true
 
 script:
   - |
+    cd $HOME
     docker run \
       -v $HOME/scripts:/rpmbuild/scripts:ro \
       -v $HOME/SOURCES:/rpmbuild/SOURCES:rw \
       -v $HOME/.m2:/rpmbuild/.m2:rw \
       -v $HOME/.npm:/rpmbuild/.npm:rw \
-      -v $(pwd):/rpmbuild/hootenanny:rw \
+      -v $TRAVIS_BUILD_DIR:/rpmbuild/hootenanny:rw \
       -it --rm \
       hootenanny/rpmbuild-hoot-release:git065b4f9 \
-      /rpmbuild/scripts/hoot-archive.sh || true
+      /bin/bash -c "cd /rpmbuild/hootenanny && /rpmbuild/scripts/hoot-archive.sh" || true
   - cat updateCopyrightHeader_*.log
