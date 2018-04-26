@@ -20,12 +20,9 @@ before_install:
     fi
   - curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar -C $HOME/.m2 -xzf -
   - sudo chown -R 1000:1000 $HOME/{.m2,.npm,scripts,SPECS,SOURCES} .
-  - echo $(pwd)
 
 script:
   - |
-    echo $(pwd)
-    ls -lah $(pwd)
     docker run \
       -v $HOME/scripts:/rpmbuild/scripts:ro \
       -v $HOME/SOURCES:/rpmbuild/SOURCES:rw \
@@ -34,4 +31,4 @@ script:
       -v $(pwd):/rpmbuild/hootenanny:rw \
       -it --rm \
       hootenanny/rpmbuild-hoot-release:git065b4f9 \
-      /bin/bash -c "set -x && id && pwd && ls -lah /rpmbuild/hootenanny && /rpmbuild/scripts/hoot-archive.sh"
+      /bin/bash -c "set -x && /rpmbuild/scripts/hoot-archive.sh"
