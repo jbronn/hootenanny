@@ -8,7 +8,7 @@ services:
 before_install:
   - git submodule update --init --recursive
   - docker pull hootenanny/rpmbuild-hoot-release:git065b4f9
-  - mkdir -p -m 0755 $HOME/{.m2,.npm,scripts,SOURCES}
+  - mkdir -p -m 0755 $HOME/{.m2,.npm,scripts,SPECS,SOURCES}
   - |
     if [ ! -x $HOME/scripts/hoot-archive.sh ]; then
       curl -sSL -o $HOME/scripts/hoot-archive.sh https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/scripts/hoot-archive.sh
