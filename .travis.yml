@@ -25,6 +25,9 @@ before_install:
 
 script:
   - |
+    id
+    ls -lah .
+    ls -lah $HOME/scripts
     docker run \
       -v $HOME/scripts:/rpmbuild/scripts:ro \
       -v $HOME/SOURCES:/rpmbuild/SOURCES:rw \
