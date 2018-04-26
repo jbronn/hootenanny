@@ -33,4 +33,5 @@ script:
       -v $(pwd):/rpmbuild/hootenanny:rw \
       -it --rm \
       hootenanny/rpmbuild-hoot-release:git065b4f9 \
-      /bin/bash -c "set -x && /rpmbuild/scripts/hoot-archive.sh"
+      /rpmbuild/scripts/hoot-archive.sh || true
+  - cat updateCopyrightHeader_*.log
