@@ -31,7 +31,7 @@ jobs:
           name: 'Download and Extract Maven Cache'
           command: |
             if [ ! -d /rpmbuild/.m2/repository ]; then
-              su-exec rpmbuild bash -c "mkdir -p /rpmbuild/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar -C /rpmbuild/.m2 xzf -"
+              su-exec rpmbuild bash -c "mkdir -p /rpmbuild/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar -C /rpmbuild/.m2 -xzf -"
             fi
       - run:
           name: 'Create Archive'
