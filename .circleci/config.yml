@@ -14,20 +14,6 @@ jobs:
             chown -R rpmbuild:rpmbuild .
             su-exec rpmbuild git submodule update --init --recursive
       - run:
-          name: 'Download RPM Scripts'
-          command: |
-            mkdir -m 0755 -p /rpmbuild/{scripts,SPECS}
-            chown rpmbuild:rpmbuild /rpmbuild/{scripts,SPECS}
-            if [ ! -x /rpmbuild/scripts/hoot-archive.sh ]; then
-              cd /rpmbuild/scripts
-              su-exec rpmbuild curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/scripts/hoot-archive.sh
-              chmod +x hoot-archive.sh
-            fi
-            if [ ! -f /rpmbuild/SPECS/hootenanny.spec ]; then
-              cd /rpmbuild/SPECS
-              su-exec rpmbuild curl -sSL -O https://raw.githubusercontent.com/ngageoint/hootenanny-rpms/develop/SPECS/hootenanny.spec
-            fi
-      - run:
           name: 'Download and Extract Maven Cache'
           command: |
             if [ ! -d /rpmbuild/.m2/repository ]; then
@@ -37,13 +23,12 @@ jobs:
           name: 'Create Archive'
           command: |
             su-exec postgres pg_ctl -D $PGDATA -s start
-            su-exec rpmbuild /rpmbuild/hootenanny/scripts/copyright/UpdateCopyrightHeader.py --copyright-header=/rpmbuild/hootenanny/LicenseTemplate.txt --file=/rpmbuild/hootenanny/hoot-core/src/main/cpp/hoot/core/Version.cpp --update-mode=0
-
-#            mkdir -p /tmp/archive
-#            mv -v /rpmbuild/hootenanny/hootenanny-[0-9]*.tar.gz /tmp/archive
-#      - store_artifacts:
-#          path: /tmp/archive
-#          destination: archives
+            su-exec rpmbuild /rpmbuild/hootenanny/scripts/ci/archive.sh
+            mkdir -p /tmp/archive
+            mv -v /rpmbuild/hootenanny/hootenanny-[0-9]*.tar.gz /tmp/archive
+      - store_artifacts:
+          path: /tmp/archive
+          destination: archives
 
 workflows:
   version: 2
