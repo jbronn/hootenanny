@@ -37,7 +37,7 @@ jobs:
           name: 'Create Archive'
           command: |
             su-exec postgres pg_ctl -D $PGDATA -s start
-            su-exec rpmbuild /bin/bash -c "export HOOT_HOME=/rpmbuild/hootenanny && /rpmbuild/hootenanny/scripts/copyright/UpdateAllCopyrightHeaders.sh"
+            su-exec rpmbuild /bin/bash -c "export HOOT_HOME=/rpmbuild/hootenanny && cd /rpmbuild/hootenanny/hoot-core && /rpmbuild/hootenanny/scripts/copyright/UpdateAllCopyrightHeaders.sh"
 
 #            mkdir -p /tmp/archive
 #            mv -v /rpmbuild/hootenanny/hootenanny-[0-9]*.tar.gz /tmp/archive
