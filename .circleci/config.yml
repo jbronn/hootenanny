@@ -44,7 +44,7 @@ jobs:
 
 workflows:
   version: 2
-  archive:
+  archive-copyright:
     jobs:
       - archive
       - copyright
