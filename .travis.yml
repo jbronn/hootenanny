@@ -34,4 +34,4 @@ script:
       -v $TRAVIS_BUILD_DIR:/rpmbuild/hootenanny:rw \
       -it --rm \
       hootenanny/rpmbuild-hoot-release:git065b4f9 \
-      /bin/bash -c "ls -lah /rpmbuild/hootenanny/.git && /rpmbuild/hootenanny/scripts/copyright/UpdateCopyrightHeader.py --copyright-header=/rpmbuild/hootenanny/LicenseTemplate.txt --file=/rpmbuild/hootenanny/hoot-core/src/main/cpp/hoot/core/Version.cpp --update-mode=0"
+      /bin/bash -c "cd /rpmbuild/hootenanny && git log --date=short --format=format:%ad hoot-core/src/main/cpp/hoot/core/Version.cpp"
