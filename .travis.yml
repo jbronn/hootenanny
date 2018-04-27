@@ -8,7 +8,6 @@ services:
   - docker
 
 before_install:
-  - git submodule update --init --recursive
   - docker pull hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
   - |
     mkdir -p -m 0755 $HOME/{.m2,.npm,SOURCES}
