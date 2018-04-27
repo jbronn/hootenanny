@@ -8,6 +8,7 @@ services:
   - docker
 
 before_install:
+  - docker pull hootenanny/rpmbuild-generic@sha256:1a90408da44fc3577634210f3a93ac6d80ad7330e7f7eee1d51b1544f0d835c7
   - docker pull hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
   - |
     mkdir -p -m 0755 $HOME/{.m2,.npm,SOURCES}
@@ -16,13 +17,25 @@ before_install:
 
 install: true
 
-script:
-  - |
-    docker run \
-      -v $HOME/SOURCES:/rpmbuild/SOURCES:rw \
-      -v $HOME/.m2:/rpmbuild/.m2:rw \
-      -v $HOME/.npm:/rpmbuild/.npm:rw \
-      -v $TRAVIS_BUILD_DIR:/rpmbuild/hootenanny:rw \
-      -it --rm \
-      hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10 \
-      /rpmbuild/hootenanny/scripts/ci/archive.sh
+jobs:
+  include:
+    - stage: test
+      script:
+        - |
+          docker run \
+            -v $HOME/SOURCES:/rpmbuild/SOURCES:rw \
+            -v $HOME/.m2:/rpmbuild/.m2:rw \
+            -v $HOME/.npm:/rpmbuild/.npm:rw \
+            -v $TRAVIS_BUILD_DIR:/rpmbuild/hootenanny:rw \
+            -it --rm \
+            hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10 \
+            /rpmbuild/hootenanny/scripts/ci/archive.sh
+    - script:
+        - |
+          docker run \
+            -e HOOT_HOME=/rpmbuild/hootenanny \
+            -w /rpmbuild/hootenanny \
+            -v $TRAVIS_BUILD_DIR:/rpmbuild/hootenanny:rw \
+            -it --rm \
+            hootenanny/rpmbuild-generic@sha256:1a90408da44fc3577634210f3a93ac6d80ad7330e7f7eee1d51b1544f0d835c7 \
+            ./scripts/copyright/UpdateAllCopyrightHeaders.sh
