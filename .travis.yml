@@ -1,4 +1,6 @@
 ---
+git:
+  depth: false
 language: cpp
 sudo: required
 
