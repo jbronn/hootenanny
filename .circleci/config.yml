@@ -23,9 +23,9 @@ jobs:
           name: 'Create Archive'
           command: |
             su-exec postgres pg_ctl -D $PGDATA -s start
-            su-exec rpmbuild /rpmbuild/hootenanny/scripts/ci/archive.sh
+            su-exec rpmbuild ./scripts/ci/archive.sh
             mkdir -p /tmp/archive
-            mv -v /rpmbuild/hootenanny/hootenanny-[0-9]*.tar.gz /tmp/archive
+            mv -v hootenanny-[0-9]*.tar.gz /tmp/archive
       - store_artifacts:
           path: /tmp/archive
           destination: archives
