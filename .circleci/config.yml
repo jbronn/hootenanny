@@ -32,10 +32,6 @@ jobs:
             chown -R rpmbuild:rpmbuild .
             su-exec rpmbuild git submodule update --init --recursive
       - run:
-          name: 'Start PostgreSQL'
-          command: |
-            su-exec postgres pg_ctl -D $PGDATA -s start
-      - run:
           name: 'Download and Extract Maven Cache'
           command: |
             if [ ! -d /rpmbuild/.m2/repository ]; then
@@ -52,6 +48,7 @@ jobs:
       - run:
           name: 'Make the Archive'
           command: |
+            su-exec postgres pg_ctl -D $PGDATA -s start
             su-exec rpmbuild bash -c "make -j$(nproc) clean && make -j$(nproc) archive"
 
   archive:
