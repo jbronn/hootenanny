@@ -2,6 +2,19 @@
 version: 2
 
 jobs:
+  archive2:
+    working_directory: '/rpmbuild/hootenanny'
+    docker:
+      - image: hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
+
+    steps:
+      - run:
+          name: 'Show Processes'
+          command: |
+            ps auxwww
+            env
+            echo $UID
+
   archive:
     working_directory: '/rpmbuild/hootenanny'
     docker:
@@ -46,5 +59,6 @@ workflows:
   version: 2
   archive-copyright:
     jobs:
-      - archive
-      - copyright
+      - archive2
+#      - archive
+#      - copyright
