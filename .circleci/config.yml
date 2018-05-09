@@ -2,7 +2,7 @@
 version: 2
 
 jobs:
-  archive2:
+  archive:
     working_directory: '/rpmbuild/hootenanny'
     docker:
       - image: hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
@@ -33,7 +33,6 @@ jobs:
           command: |
             su-exec postgres pg_ctl -D $PGDATA -s start
             su-exec rpmbuild bash -c "source SetupEnv.sh && source conf/database/DatabaseConfig.sh && make -j$(nproc) clean && make -j$(nproc) archive"
-
   copyright:
     working_directory: '/rpmbuild/hootenanny'
     docker:
