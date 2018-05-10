@@ -2,7 +2,7 @@
 version: 2
 
 jobs:
-  archive:
+  archive-create:
     working_directory: '/rpmbuild/hootenanny'
     docker:
       - image: hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
@@ -33,6 +33,21 @@ jobs:
           command: |
             su-exec postgres pg_ctl -D $PGDATA -s start
             su-exec rpmbuild bash -c "source SetupEnv.sh && source conf/database/DatabaseConfig.sh && make -j$(nproc) clean && make -j$(nproc) archive"
+            su-exec rpmbuild bash -c "mkdir -p archives && mv -v hootenanny-[0-9]*.tar.gz archives"
+      - persist_to_workspace:
+          root: archives
+  archive-upload:
+    working_directory: '/rpmbuild/hootenanny'
+    docker:
+      - image: hootenanny/rpmbuild-repo@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
+        user: rpmbuild
+    steps:
+      - attach_workspace:
+          at: archives
+      - run:
+          name: 'Upload the Archive'
+          command: |
+            find archives -type f -exec aws s3 cp {} s3://hoot-archives/circle/ \;
   copyright:
     working_directory: '/rpmbuild/hootenanny'
     docker:
@@ -50,5 +65,7 @@ workflows:
   version: 2
   tests:
     jobs:
-      - archive
+      - archive-create
+      - archive-upload:
+          requires: archive-create
       - copyright

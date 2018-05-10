@@ -9,6 +9,7 @@ services:
 
 before_install:
   - docker pull hootenanny/rpmbuild-generic@sha256:1a90408da44fc3577634210f3a93ac6d80ad7330e7f7eee1d51b1544f0d835c7
+  - pip install --user awscli
   - |
     mkdir -p -m 0755 $HOME/{.m2,.npm,SOURCES}
     curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar -C $HOME/.m2 -xzf -
@@ -18,7 +19,7 @@ install: true
 
 jobs:
   include:
-    - stage: archive-copyright
+    - stage: tests
       script:
         - |
           docker run \
@@ -29,6 +30,8 @@ jobs:
             -it --rm \
             hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10 \
             /rpmbuild/hootenanny/scripts/ci/archive.sh
+          HOOT_VERSION_GEN=$(cat HOOT_VERSION_FILE | awk '{ print $3 }')
+          aws s3 cp ${HOME}/SOURCES/hootenanny-${HOOT_VERSION_GEN}.tar.gz s3://hoot-archives/travis/
     - script:
         - |
           docker run \
