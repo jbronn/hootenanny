@@ -11,9 +11,9 @@ before_install:
   - docker pull hootenanny/rpmbuild-generic@sha256:1a90408da44fc3577634210f3a93ac6d80ad7330e7f7eee1d51b1544f0d835c7
   - pip install --user awscli
   - |
-    mkdir -p -m 0755 $HOME/{.m2,.npm,SOURCES}
+    mkdir -p -m 0755 $HOME/.m2
     curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar -C $HOME/.m2 -xzf -
-    sudo chown -R 1000:1000 $HOME/{.m2,.npm,SOURCES} .
+    sudo chown -R 1000:1000 $HOME/.m2 $TRAVIS_BUILD_DIR
 
 install: true
 
@@ -23,21 +23,19 @@ jobs:
       script:
         - |
           docker run \
-            -v $HOME/SOURCES:/rpmbuild/SOURCES:rw \
             -v $HOME/.m2:/rpmbuild/.m2:rw \
-            -v $HOME/.npm:/rpmbuild/.npm:rw \
             -v $TRAVIS_BUILD_DIR:/rpmbuild/hootenanny:rw \
+            -w /rpmbuild/hootenanny \
             -it --rm \
             hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10 \
             /rpmbuild/hootenanny/scripts/ci/archive.sh
-          mkdir -p archives && mv -v hootenanny-[0-9]*.tar.gz archives
-          find archives -type f -exec aws s3 cp {} s3://hoot-archives/travis/ \;
+          find $TRAVIS_BUILD_DIR -type f -name hootenanny-\*.tar.gz -exec aws s3 cp {} s3://hoot-archives/travis/ \;
     - script:
         - |
           docker run \
+            -v $TRAVIS_BUILD_DIR:/rpmbuild/hootenanny:rw \
             -e HOOT_HOME=/rpmbuild/hootenanny \
             -w /rpmbuild/hootenanny \
-            -v $TRAVIS_BUILD_DIR:/rpmbuild/hootenanny:rw \
             -it --rm \
             hootenanny/rpmbuild-generic@sha256:1a90408da44fc3577634210f3a93ac6d80ad7330e7f7eee1d51b1544f0d835c7 \
             ./scripts/copyright/UpdateAllCopyrightHeaders.sh

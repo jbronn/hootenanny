@@ -20,19 +20,10 @@ jobs:
               su-exec rpmbuild bash -c "mkdir -p /rpmbuild/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar -C /rpmbuild/.m2 -xzf -"
             fi
       - run:
-          name: 'Generate Configure Script'
-          command: |
-            su-exec rpmbuild cp -v LocalConfig.pri.orig LocalConfig.pri
-            su-exec rpmbuild bash -c "aclocal && autoconf && autoheader && automake --add-missing --copy"
-      - run:
-          name: 'Run Configure Script'
-          command: |
-            su-exec rpmbuild ./configure --quiet --with-rnd --with-services --with-postgresql
-      - run:
           name: 'Make the Archive'
           command: |
             su-exec postgres pg_ctl -D $PGDATA -s start
-            su-exec rpmbuild bash -c "source SetupEnv.sh && source conf/database/DatabaseConfig.sh && make -j$(nproc) clean && make -j$(nproc) archive"
+            su-exec rpmbuild /rpmbuild/hootenanny/scripts/ci/archive.sh
             su-exec rpmbuild bash -c "mkdir -p archives && mv -v hootenanny-[0-9]*.tar.gz archives"
       - persist_to_workspace:
           root: archives
