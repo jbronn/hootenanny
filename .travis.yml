@@ -1,4 +1,10 @@
 ---
+addons:
+  artifacts:
+    paths:
+      - hootenanny-[0-9]*.tar.gz
+    target_paths:
+      - /travis/
 git:
   depth: false
 language: cpp
@@ -30,8 +36,6 @@ jobs:
             -it --rm \
             hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10 \
             /rpmbuild/hootenanny/scripts/ci/archive.sh
-          HOOT_VERSION_GEN=$(cat HOOT_VERSION_FILE | awk '{ print $3 }')
-          aws s3 cp ${HOME}/SOURCES/hootenanny-${HOOT_VERSION_GEN}.tar.gz s3://hoot-archives/travis/
     - script:
         - |
           docker run \

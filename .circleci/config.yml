@@ -39,7 +39,7 @@ jobs:
   archive-upload:
     working_directory: '/rpmbuild/hootenanny'
     docker:
-      - image: hootenanny/rpmbuild-repo@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
+      - image: hootenanny/rpmbuild-repo@sha256:cfee4a229812fed0993b9fa27cd4291b68b19d24b316e77c4c40074e3c7b249e
         user: rpmbuild
     steps:
       - attach_workspace:
@@ -67,5 +67,6 @@ workflows:
     jobs:
       - archive-create
       - archive-upload:
-          requires: archive-create
+          requires:
+            - archive-create
       - copyright
