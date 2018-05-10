@@ -36,6 +36,8 @@ jobs:
             su-exec rpmbuild bash -c "mkdir -p archives && mv -v hootenanny-[0-9]*.tar.gz archives"
       - persist_to_workspace:
           root: archives
+          paths:
+            - hootenanny-*.tar.gz
   archive-upload:
     working_directory: '/rpmbuild/hootenanny'
     docker:

@@ -2,7 +2,7 @@
 addons:
   artifacts:
     paths:
-      - hootenanny-[0-9]*.tar.gz
+      - hootenanny-*.tar.gz
     target_paths:
       - /travis/
 git:
@@ -15,7 +15,6 @@ services:
 
 before_install:
   - docker pull hootenanny/rpmbuild-generic@sha256:1a90408da44fc3577634210f3a93ac6d80ad7330e7f7eee1d51b1544f0d835c7
-  - pip install --user awscli
   - |
     mkdir -p -m 0755 $HOME/{.m2,.npm,SOURCES}
     curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar -C $HOME/.m2 -xzf -
