@@ -2,6 +2,10 @@
 
 ![](https://github.com/ngageoint/hootenanny/blob/master/docs/user/images/id/hoot_conflation_new.png)
 
+| **CircleCI** | **TravisCI** |
+| ------------ | ------------ |
+| [![CircleCI Status](https://circleci.com/gh/jbronn/hootenanny.svg?style=svg)](https://circleci.com/gh/jbronn/hootenanny) | [![TravisCI Status](https://travis-ci.org/jbronn/hootenanny.svg?branch=master)](https://travis-ci.org/jbronn/hootenanny) |
+
 # Introduction
 _Hootenanny_: 
 

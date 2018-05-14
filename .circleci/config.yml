@@ -1,0 +1,65 @@
+---
+version: 2
+
+jobs:
+  archive-create:
+    working_directory: '/rpmbuild/hootenanny'
+    docker:
+      - image: hootenanny/rpmbuild-hoot-release@sha256:d41955e2b2b7bff973a23f289e373fb2c8117339b97fbefe2244c9e295b93f10
+    steps:
+      - checkout
+      - run:
+          name: 'Git Submodules'
+          command: |
+            chown -R rpmbuild:rpmbuild .
+            su-exec rpmbuild git submodule update --init --recursive
+      - run:
+          name: 'Download and Extract Maven Cache'
+          command: |
+            if [ ! -d /rpmbuild/.m2/repository ]; then
+              su-exec rpmbuild bash -c "mkdir -p /rpmbuild/.m2 && curl -sSL https://s3.amazonaws.com/hoot-maven/m2-cache.tar.gz | tar -C /rpmbuild/.m2 -xzf -"
+            fi
+      - run:
+          name: 'Make the Archive'
+          command: |
+            su-exec postgres pg_ctl -D $PGDATA -s start
+            su-exec rpmbuild /rpmbuild/hootenanny/scripts/ci/archive.sh
+            su-exec rpmbuild bash -c "mkdir -p archives && mv -v hootenanny-[0-9]*.tar.gz archives"
+      - persist_to_workspace:
+          root: archives
+          paths:
+            - hootenanny-*.tar.gz
+  archive-upload:
+    working_directory: '/rpmbuild/hootenanny'
+    docker:
+      - image: hootenanny/rpmbuild-repo@sha256:cfee4a229812fed0993b9fa27cd4291b68b19d24b316e77c4c40074e3c7b249e
+        user: rpmbuild
+    steps:
+      - attach_workspace:
+          at: archives
+      - run:
+          name: 'Upload the Archive'
+          command: |
+            find archives -type f -exec aws s3 cp {} s3://hoot-archives/circle/ \;
+  copyright:
+    working_directory: '/rpmbuild/hootenanny'
+    docker:
+      - image: hootenanny/rpmbuild-generic@sha256:1a90408da44fc3577634210f3a93ac6d80ad7330e7f7eee1d51b1544f0d835c7
+        user: rpmbuild
+        environment:
+          HOOT_HOME: '/rpmbuild/hootenanny'
+    steps:
+      - checkout
+      - run:
+          name: 'Check Copyright Headers'
+          command: ./scripts/copyright/UpdateAllCopyrightHeaders.sh
+
+workflows:
+  version: 2
+  tests:
+    jobs:
+      - archive-create
+      - archive-upload:
+          requires:
+            - archive-create
+      - copyright
