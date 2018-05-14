@@ -22,7 +22,7 @@ jobs:
       - run:
           name: 'Make the Archive'
           command: |
-            #su-exec postgres pg_ctl -D $PGDATA -s start
+            su-exec postgres pg_ctl -D $PGDATA -s start
             su-exec rpmbuild /rpmbuild/hootenanny/scripts/ci/archive.sh
             su-exec rpmbuild bash -c "mkdir -p archives && mv -v hootenanny-[0-9]*.tar.gz archives"
       - persist_to_workspace:
