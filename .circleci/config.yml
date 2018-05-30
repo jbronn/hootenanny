@@ -40,7 +40,7 @@ jobs:
       - run:
           name: 'Upload the Archive'
           command: |
-            find archives -type f -exec aws s3 cp {} s3://hoot-archives/circle/ \;
+            find archives -type f -exec aws s3 cp {} s3://hoot-archives/circle/$CIRCLE_BRANCH/ \;
   copyright:
     working_directory: '/rpmbuild/hootenanny'
     docker:
