@@ -69,13 +69,15 @@ WaySubline::WaySubline(const WayLocation& start, const WayLocation& end) :
   _start(start),
   _end(end)
 {
-  assert(_start.getWay() == _end.getWay());
 }
 
 WaySubline& WaySubline::operator=(const WaySubline& from)
 {
-  _start = from.getStart();
-  _end = from.getEnd();
+  if (this != &from)
+  {
+    _start = from.getStart();
+    _end = from.getEnd();
+  }
   return *this;
 }
 

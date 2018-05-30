@@ -51,7 +51,8 @@ public:
   virtual std::string getClassName() const { return CentroidDistanceExtractor::className(); }
 
   virtual QString getDescription() const
-  { return "TODO"; }
+  { return "Converts target & candidate to geometries, finds their centroids, "
+           "calculates the distance between those two points"; }
 };
 
 }
