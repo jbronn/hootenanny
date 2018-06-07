@@ -22,14 +22,14 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2015, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #include "FindIntersectionsVisitor.h"
 
 #include <hoot/core/OsmMap.h>
 #include <hoot/core/index/OsmMapIndex.h>
 #include <hoot/core/conflate/NodeToWayMap.h>
-#include <hoot/core/conflate/NodeMatcher.h>
+#include <hoot/core/conflate/matching/NodeMatcher.h>
 #include <hoot/core/schema/OsmSchema.h>
 
 using namespace std;
@@ -57,7 +57,7 @@ void FindIntersectionsVisitor::visit(const ConstElementPtr& e)
   }
 
 
-  if (hwids.size() >= 3) // two or more roads intersting
+  if (hwids.size() >= 3) // two or more roads intersecting
   {
     // keep it
     _ids.push_back(id);

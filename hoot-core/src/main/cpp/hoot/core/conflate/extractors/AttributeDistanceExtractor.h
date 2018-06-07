@@ -22,7 +22,7 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2015, 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #ifndef ATTRIBUTEDISTANCEEXTRACTOR_H
 #define ATTRIBUTEDISTANCEEXTRACTOR_H
@@ -34,6 +34,7 @@ namespace hoot
 
 /**
  * See exporatory funds report for details.
+ * Calculates "distance" between tags using hoot::TagComparator
  */
 class AttributeDistanceExtractor : public WayFeatureExtractor
 {
@@ -47,6 +48,9 @@ public:
   virtual std::string getClassName() const { return className(); }
 
   virtual std::string getName() const;
+
+  virtual QString getDescription() const
+  { return "Calculates \"distance\" between tags using hoot::TagComparator"; }
 
 protected:
 

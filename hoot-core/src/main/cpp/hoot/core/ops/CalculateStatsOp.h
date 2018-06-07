@@ -22,14 +22,14 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2015, 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #ifndef CALCULATESTATSOP_H
 #define CALCULATESTATSOP_H
 
 // hoot
 #include <hoot/core/filters/ElementCriterion.h>
-#include <hoot/core/conflate/MatchCreator.h>
+#include <hoot/core/conflate/matching/MatchCreator.h>
 #include <hoot/core/elements/ConstElementVisitor.h>
 #include "ConstOsmMapOperation.h"
 #include "stats/SingleStat.h"
@@ -72,6 +72,8 @@ public:
   long indexOfSingleStat(const QString& n) const;
 
   void setQuickSubset(bool quick) { _quick = quick; }
+
+  virtual QString getDescription() const { return "Calculates map statistics"; }
 
 private:
 

@@ -29,8 +29,8 @@
 // hoot
 #include <hoot/core/util/Factory.h>
 #include <hoot/core/OsmMap.h>
-#include <hoot/core/conflate/MatchThreshold.h>
-#include <hoot/core/conflate/MatchType.h>
+#include <hoot/core/conflate/matching/MatchThreshold.h>
+#include <hoot/core/conflate/matching/MatchType.h>
 #include <hoot/core/conflate/polygon/BuildingMatch.h>
 #include <hoot/core/elements/ConstElementVisitor.h>
 #include <hoot/core/filters/ArbitraryCriterion.h>
@@ -97,6 +97,8 @@ public:
     LOG_DEBUG("neighbor counts, max: " << _neighborCountMax << " mean: " <<
              (double)_neighborCountSum / (double)_elementsEvaluated);
   }
+
+  virtual QString getDescription() const { return ""; }
 
   void checkForMatch(const boost::shared_ptr<const Element>& e)
   {

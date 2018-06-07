@@ -12,6 +12,12 @@ var availableTrans = {
     MGCP: {isavailable: true},
     GGDMv30: {isavailable: true}
 };
+var availableTranslations = [
+    'TDSv40',
+    'TDSv61',
+    'MGCP',
+    'GGDMv30'
+];
 var HOOT_HOME = process.env.HOOT_HOME;
 if (typeof hoot === 'undefined') {
     hoot = require(HOOT_HOME + '/lib/HootJs');
@@ -67,48 +73,6 @@ var translationsMap = {
         }),
         GGDMv30: new hoot.TranslationOp({
             'translation.script': HOOT_HOME + '/translations/GGDMv30.js',
-            'translation.direction': 'toosm'
-        })
-    }
-};
-
-var osmToTdsMap = {
-    toogr: {
-        TDSv40: new hoot.TranslationOp({
-            'translation.script': HOOT_HOME + '/translations/OSM_to_englishTDS.js',
-            'translation.direction': 'toogr'
-        }),
-        TDSv61: new hoot.TranslationOp({
-            'translation.script': HOOT_HOME + '/translations/OSM_to_englishTDS61.js',
-            'translation.direction': 'toogr'
-        }),
-        MGCP: new hoot.TranslationOp({
-            'translation.script': HOOT_HOME + '/translations/OSM_to_englishMGCP.js',
-            'translation.direction': 'toogr'
-        }),
-        GGDMv30: new hoot.TranslationOp({
-            'translation.script': HOOT_HOME + '/translations/OSM_to_englishGGDM30.js',
-            'translation.direction': 'toogr'
-        })
-    }
-};
-
-var tdsToOsmMap = {
-    toosm: {
-        TDSv40: new hoot.TranslationOp({
-            'translation.script': HOOT_HOME + '/translations/englishTDS_to_OSM.js',
-            'translation.direction': 'toosm'
-        }),
-        TDSv61: new hoot.TranslationOp({
-            'translation.script': HOOT_HOME + '/translations/englishTDS61_to_OSM.js',
-            'translation.direction': 'toosm'
-        }),
-        MGCP: new hoot.TranslationOp({
-            'translation.script': HOOT_HOME + '/translations/englishMGCP_to_OSM.js',
-            'translation.direction': 'toosm'
-        }),
-        GGDMv30: new hoot.TranslationOp({
-            'translation.script': HOOT_HOME + '/translations/englishGGDM30_to_OSM.js',
             'translation.direction': 'toosm'
         })
     }
@@ -225,36 +189,15 @@ function TranslationServer(request, response) {
 function handleInputs(params) {
     var result;
     switch(params.path) {
-        case '/osmtotds':
-            params.transMap = osmToTdsMap;
-            params.transDir = 'toogr';
-            result = osmtotds(params);
-            break;
-        case '/translateToEnglish':
-            params.transMap = osmToTdsMap;
-            params.transDir = 'toogr';
-            result = osmtotds(params);
-            break;
         case '/translateTo':
             params.transMap = translationsMap;
             params.transDir = 'toogr';
-            result = osmtotds(params);
-            break;
-        case '/tdstoosm':
-            params.transMap = tdsToOsmMap;
-            params.transDir = 'toosm';
-            result = tdstoosm(params);
+            result = osm2ogr(params);
             break;
         case '/translateFrom':
             params.transMap = translationsMap;
             params.transDir = 'toosm';
-            result = tdstoosm(params);
-            break;
-        case '/taginfo/key/values':
-            result = getTaginfoKeyFields(params);
-            break;
-        case '/taginfo/keys/all':
-            result = getTaginfoKeys(params);
+            result = ogr2osm(params);
             break;
         case '/schema':
             result = getFilteredSchema(params);
@@ -265,8 +208,11 @@ function handleInputs(params) {
         case '/capabilities':
             result = getCapabilities(params);
             break;
+        case '/translations':
+            result = getTranslations(params);
+            break;
         case '/version':
-            result = {version: '0.0.3'};
+            result = {version: '0.0.4'};
             break;
         default:
             throw new Error('Not found');
@@ -282,10 +228,18 @@ var getCapabilities = function(params) {
     }
 };
 
+var getTranslations = function(params) {
+    if (params.method === 'GET'){
+        return availableTranslations;
+    } else {
+        throw new Error('Unsupported method');
+    }
+};
+
 // This is where all interesting things happen interfacing with hoot core lib directly
 var postHandler = function(data) {
-    if (!availableTrans[data.translation] || !availableTrans[data.translation].isavailable) {
-        throw new Error('Unsupported translation schema');
+    if (availableTranslations.indexOf(data.translation) === -1) {
+        throw new Error('Unsupported translation schema ' + data.translation);
     }
     var translation = data.transMap[data.transDir][data.translation];
     hoot.Settings.set({"ogr.esri.fcsubtype": "false"});
@@ -302,8 +256,8 @@ var postHandler = function(data) {
     return hoot.OsmWriter.toString(map);
 };
 
-// OSM to TDS request handler
-var osmtotds = function(params) {
+// OSM to Translated Schema request handler
+var osm2ogr = function(params) {
 
     if(params.method === 'POST'){
         //translate tags in xml from osm to a supported schema
@@ -317,8 +271,10 @@ var osmtotds = function(params) {
         var geom = params.geom;
         if (geom === 'Vertex') geom = 'Point';
 
+        var k = params.key || params.idelem;
+        var v = params.value || params.idval;
         var match = schema.filter(function(d) {
-            return d[params.idelem] === params.idval && d.geom === geom;
+            return d[k] === v && d.geom === geom;
         });
 
         if (match.length !== 1) {
@@ -329,8 +285,8 @@ var osmtotds = function(params) {
     }
 };
 
-// TDS to OSM handler
-var tdstoosm = function(params) {
+// Translated Schema to OSM handler
+var ogr2osm = function(params) {
 
     if (params.method === 'POST') {
         //translate tags in xml from a supported schema to osm
@@ -346,120 +302,6 @@ var tdstoosm = function(params) {
     }
 }
 
-// TDS taginfo service
-// This retrieves associated tag keys/fields for requested fcode
-// http://localhost:8233/taginfo/key/values?fcode=AP030&filter=ways&key=SGCC&page=1&query=Clo&rp=25&sortname=count_ways&sortorder=desc&translation=TDSv61
-var getTaginfoKeyFields = function(params)
-{
-    if (params.method === 'POST') {
-        throw new Error('Unsupported method');
-    } else if (params.method === 'GET') {
-
-        // Line, Point, Area
-        var geom = [];
-
-        if (params.filter == 'nodes') {
-            geom = ['Point'];
-        } else if (params.filter == 'ways') {
-            geom = ['Line','Area'];
-        }
-
-        var schema = (params.translation) ? schemaMap[params.translation].getDbSchema() : schemaMap['TDSv61'].getDbSchema();
-        var match = schema.filter(function(d) {
-            return d.fcode === params.fcode && geom.indexOf(d.geom) > -1;
-        });
-        if (match.length !== 1) {
-            schemaError({
-                translation: params.translation,
-                idelem: 'fcode',
-                idval: params.fcode,
-                geom: geom
-            });
-        }
-
-        var data = match[0].columns.filter(function(c) {
-            return c.name === params.key && c.enumerations;
-        }).map(function(d) {
-            return d.enumerations.map(function(e) {
-                return {
-                    value: e.name,
-                    count: 1,
-                    fraction: 0.19,
-                    in_wiki: false,
-                    description: e.name,
-                    internal_val: e.value
-                };
-            });
-        }).reduce(function(a, b) {
-            return a.concat(b);
-        }, []);
-
-        return {
-            page: 1,
-            rp: data.length,
-            total: data.length,
-            url: '',
-            data: data
-        };
-    }
-}
-
-// TDS taginfo service
-// This retrieves associated tag keys/fields for requested fcode
-// http://localhost:8233/taginfo/keys/all?page=1&rp=10&sortname=count_ways&sortorder=desc&fcode=AP030&translation=TDSv61&geometry=Line
-var getTaginfoKeys = function(params)
-{
-    if (params.method === 'POST') {
-        throw new Error('Unsupported method');
-    } else if (params.method === 'GET') {
-
-        // Line, Point, Area
-        params.geom = params.rawgeom;
-
-        var schema = (params.translation) ? schemaMap[params.translation].getDbSchema() : schemaMap['TDSv61'].getDbSchema();
-
-        var match = schema.filter(function(d) {
-            return d.fcode === params.fcode;
-        });
-
-        if (match.length > 1) {
-            match = match.filter(function(d) {
-                return d.geom === params.geom;
-            })
-        }
-
-        if (match.length !== 1) {
-            schemaError(params);
-        }
-
-        var data = match[0].columns.map(function(d) {
-            return {
-                key: d.name,
-                count_all: 100001,
-                count_all_fraction: 0.1,
-                count_nodes: 100001,
-                count_nodes_fraction: 0.1,
-                count_ways: 100001,
-                count_ways_fraction: 0.1,
-                count_relations: 100001,
-                count_relations_fraction: 0.1,
-                values_all: 100,
-                users_all: 100,
-                in_wiki: false,
-                in_josm: false,
-            };
-        });
-
-        return {
-            page: 1,
-            rp: data.length,
-            total: data.length,
-            url: '',
-            data: data
-        };
-    }
-}
-
 var getFCodes = function(params) {
     if (params.method === 'POST') {
         throw new Error('Unsupported method');
@@ -469,28 +311,43 @@ var getFCodes = function(params) {
         var geomType = params.geometry;
         var translation = params.translation;
 
-        //Treat vertex geom type as point
-        if (geomType.toLowerCase() === 'vertex') geomType = 'point';
-
         //Get valid FCODEs for this translation and geometry type
         var schema = schemaMap[translation].getDbSchema();
+        var fcodes;
+        if (geomType) {
+            //Treat vertex geom type as point
+            if (geomType.toLowerCase() === 'vertex') geomType = 'point';
 
-        console.log(geomType + ', ' + translation + ', ' + schema.length);
-        var fcodes = schema
-            .filter(function(d) {
-                return d.geom.toLowerCase() === geomType.toLowerCase();
-            })
-            .map(function(d) {
-                return {
-                    fcode: d.fcode,
-                    desc: d.desc
-                }
-            })
-            .sort(function(a, b) {
+            fcodes = schema
+                .filter(function(d) {
+                    return d.geom.toLowerCase() === geomType.toLowerCase();
+                })
+                .map(function(d) {
+                    return {
+                        fcode: d.fcode,
+                        desc: d.desc
+                    }
+                });
+        } else {
+
+            fcodes = Object.values(schema
+                .reduce(function(map, d) {
+                    if (map[d.fcode]) {
+                        map[d.fcode].geom.push(d.geom);
+                    } else {
+                        map[d.fcode] = {
+                            fcode: d.fcode,
+                            desc: d.desc,
+                            geom: [d.geom]
+                        };
+                    }
+                    return map;
+                }, {}));
+        }
+
+        return fcodes.sort(function(a, b) {
                 return a.fcode - b.fcode;
             });
-
-        return fcodes;
     }
 }
 
@@ -503,7 +360,7 @@ var getFilteredSchema = function(params) {
         var geomType = params.geometry;
         var searchStr = params.searchstr;
         var translation = params.translation;
-        var maxLevDistance = 1*params.maxlevdst;
+        var maxLeinDistance = 1*params.maxleindst;
         var limitResult = 1*params.limit;
 
         return searchSchema({
@@ -511,7 +368,7 @@ var getFilteredSchema = function(params) {
             geomType: geomType,
             searchStr: searchStr,
             limitResult: limitResult,
-            maxLevDistance: maxLevDistance
+            maxLeinDistance: maxLeinDistance
         });
     }
 }
@@ -520,53 +377,30 @@ var searchSchema = function(options) {
     var translation = options.translation || 'TDSv61';
     var geomType = options.geomType || '';
     var searchStr = options.searchStr || '';
-    var limitResult = options.limitResult || 1000;
-    var maxLevDistance = options.maxLevDistance || 20;
+    var limitResult = options.limitResult || 20;
+    var maxLeinDistance = options.maxLeinDistance || 200;
     var schema = schemaMap[translation].getDbSchema();
+    var leinSearch = getLein(searchStr).toLocaleLowerCase();
 
     //Treat vertex geom type as point
     if (geomType.toLowerCase() === 'vertex') geomType = 'point';
 
+    // get desc and fcode matching results
+    var schemaMatches = schema
+        .filter(function(d) {
+            return d.geom.toLowerCase().indexOf(geomType.toLowerCase()) !== -1  &&
+                (  d.desc.toLowerCase().indexOf(searchStr.toLowerCase()) !== -1 ||
+                   d.fcode.toLowerCase().indexOf(searchStr.toLowerCase()) !== -1
+                );
+        });
+
     var result = [];
     if (searchStr.length > 0) {
-
-        //Check for search string in the description or fcode
-        var exactMatches = schema
-            .filter(function(d) {
-                return d.geom.toLowerCase().indexOf(geomType.toLowerCase()) !== -1 &&
-                ( d.desc.toLowerCase().indexOf(searchStr.toLowerCase()) !== -1 ||
-                    d.fcode.toLowerCase().indexOf(searchStr.toLowerCase()) !== -1 )
-                ;
-            })
-            .map(function(d) {
-                return {
-                    name: d.name,
-                    fcode: d.fcode,
-                    desc: d.desc,
-                    geom: d.geom,
-                    idx: Math.min( d.desc.toLowerCase().indexOf(searchStr.toLowerCase()),
-                        d.fcode.toLowerCase().indexOf(searchStr.toLowerCase()) )
-                }
-            })
-            .sort(function(a, b) {
-                return a.idx - b.idx;
-            })
-            .slice(0, limitResult);
-
-        result = result.concat(exactMatches);
-
-        //If more results are needed to reach the limit, calculate fuzzy levenshtein matches
-        if (exactMatches.length < limitResult) {
-
-            var fuzzyMatches = schema
+        // find exact fcode matches and sort.
+        var limitLeft = limitResult;
+            fcodeMatches = schemaMatches
                 .filter(function(d) {
-                    return (! exactMatches.some(function(e) { //filter out exact matches
-                        return e.desc === d.desc;
-                    }) ) &&
-                    d.geom.toLowerCase().indexOf(geomType.toLowerCase()) !== -1 &&
-                    ( getLevenshteinDistance(searchStr.toLowerCase(), d.desc.toLowerCase()) <= maxLevDistance ||
-                        getLevenshteinDistance(searchStr.toLowerCase(), d.fcode.toLowerCase()) <= maxLevDistance )
-                    ;
+                    return d.fcode.toLowerCase().indexOf(searchStr.toLowerCase()) !== -1;
                 })
                 .map(function(d) {
                     return {
@@ -574,17 +408,174 @@ var searchSchema = function(options) {
                         fcode: d.fcode,
                         desc: d.desc,
                         geom: d.geom,
-                        idx: Math.min( getLevenshteinDistance(searchStr.toLowerCase(), d.desc.toLowerCase()),
-                            getLevenshteinDistance(searchStr.toLowerCase(), d.fcode.toLowerCase()) )
-                    }
+                        idx: Number(d.fcode.toLowerCase().replace(searchStr.toLowerCase(), ''))
+                    };
                 })
-                .sort(function(a, b) {
-                    return a.idx - b.idx;
-                })
+                .sort(function(a, b) { return a.idx - b.idx; })
                 .slice(0, limitResult);
 
-            result = result.concat(fuzzyMatches)
-                .slice(0, limitResult);
+        result = result.concat(fcodeMatches);
+        limitLeft = limitResult - fcodeMatches.length;
+
+        // if partial exact fcode matches don't fill limit
+        // add desc matches to results.
+        if (limitLeft > 0) {
+
+            var descMatches = schemaMatches
+                    .filter(function(d) {
+                        return d.desc.toLowerCase().indexOf(searchStr.toLowerCase()) !== -1 &&
+                               d.fcode.toLowerCase().indexOf(searchStr.toLowerCase()) === -1;
+                    })
+                    .map(function(d) {
+                        return {
+                            name: d.name,
+                            fcode: d.fcode,
+                            desc: d.desc,
+                            geom: d.geom,
+                            idx: d.desc.toLowerCase().indexOf(searchStr.toLowerCase())
+                        };
+                    })
+                    .sort(function(a, b) { return a.idx - b.idx; })
+                    .slice(0, limitLeft);
+
+            result = result.concat(descMatches);
+            limitLeft = limitLeft - descMatches.length;
+
+            // if no partial exact fcode or desc matches
+            // use fuzzy matches (Levenshtein) on desc
+            if (result.length === 0) {
+                // make sure only matching on those
+                // - valid geometry
+                // - not a match in description or fcode
+                var fuzzyMatches = schema
+                        .filter(function(d) {
+                            var validGeom = d.geom.toLowerCase().indexOf(geomType.toLowerCase()) !== -1,
+                                notMatch = (
+                                    d.fcode.toLowerCase().indexOf(searchStr.toLowerCase()) === -1  &&
+                                    d.desc.toLowerCase().indexOf(searchStr.toLowerCase()) === -1
+                                );
+
+                            return validGeom && notMatch;
+                        })
+                        .map(function(d) {
+                            var minDescDistance = Math.min.apply(
+                                null, d.desc.toLowerCase().split(/\s+/).map(function(word) {
+                                    var leinWord = getLein(word).toLocaleLowerCase();
+                                    return leinWord[0] !== leinSearch[0] ? Infinity : Math.abs(
+                                        Number(leinSearch.substr(1, leinSearch.length)) -
+                                        Number(leinWord.substr(1, leinWord.legth))
+                                    );
+                                })
+                            )
+
+                            return {
+                                name: d.name,
+                                fcode: d.fcode,
+                                desc: d.desc,
+                                geom: d.geom,
+                                idx: minDescDistance
+                            }
+                        })
+                        .filter(function(d) { return d.idx <= maxLeinDistance })
+                        .sort(function(a, b) { return a.idx - b.idx })
+                        .slice(0, limitLeft)
+
+                result = result.concat(fuzzyMatches);
+                limitLeft = limitLeft - fuzzyMatches.length;
+
+                // when traditional fuzzy matches still do not return anything, try to
+                // use 'near by keys' as the lead character in string to find matches
+                // motivation here is to catch things like 'vuilding' instead of building
+                if (limitLeft > 0) {
+
+                    // after nearby (keyboard) character replacement
+                    // try exact matches on descriptions
+                    var searchStrings = getFuzzyStrings(searchStr),
+                        keyDescMatches = searchStrings.map(function(str) {
+                            return schema
+                                .filter(function(d) {
+                                    return d.geom.toLowerCase().indexOf(geomType.toLowerCase()) !== -1  &&
+                                        d.desc.toLowerCase().indexOf(str.toLowerCase()) !== -1;
+                                })
+                                .map(function(d) {
+                                    return {
+                                        name: d.name,
+                                        fcode: d.fcode,
+                                        desc: d.desc,
+                                        geom: d.geom,
+                                        idx: d.desc.toLowerCase().indexOf(str.toLowerCase())
+                                    }
+                                })
+                                .sort(function(a, b) { return a.idx - b.idx })
+
+                        });
+
+                    // flatten, then concat keyDescMatches
+                    keyDescMatches = [].concat.apply([], keyDescMatches)
+                        .slice(0, limitLeft);
+
+                    result = result.concat(keyDescMatches);
+                    limitLeft = limitResult - keyDescMatches.length;
+
+                    // try fuzzy matches on nearby (keyboard) character replaced descriptions
+                    if (limitLeft > 0) {
+                        var fuzzyKeyMatches = searchStrings.map(function(str) {
+                            var leinStr = getLein(str);
+
+                            return schema
+                                .filter(function(d) {
+                                    var validGeom = d.geom.toLowerCase().indexOf(geomType.toLowerCase()) !== -1,
+                                        notMatch = (
+                                            d.fcode.toLowerCase().indexOf(str.toLowerCase()) === -1,
+                                            d.desc.toLowerCase().indexOf(str.toLowerCase()) === -1
+                                        )
+
+                                    return validGeom && notMatch;
+                                }).
+                                map(function(d) {
+                                    var minDescDistance = Math.min.apply(
+                                        null, d.desc.split(/\+s/g).map(function(word) {
+                                            var leinWord = getLein(word);
+
+                                            return leinWord[0] !== leinStr[0] ? Infinity : Math.abs(
+                                                Number(leinStr.substr(1, leinStr.length)) -
+                                                Number(leinWord.substr(1, leinWord.length))
+                                            )
+                                        })
+                                    );
+
+                                    return {
+                                        name: d.name,
+                                        fcode: d.fcode,
+                                        desc: d.desc,
+                                        geom: d.geom,
+                                        idx: minDescDistance
+                                    }
+                                })
+                                .filter(function(d) { return d.idx <= maxLeinDistance; })
+                                .sort(function(a, b) { return a.idx - b.idx; })
+                                .slice(0, 5)
+
+                        });
+
+                        // make sure best fuzzy match goes first before flattening them...
+                        fuzzyKeyMatches = fuzzyKeyMatches.sort(function(a, b) {
+                            var aMinLein = Math.min.apply(null, a.map(function(d) { return d.idx })),
+                                bMinLein = Math.min.apply(null, a.map(function(d) { return d.idx }));
+
+                            return aMinLein - bMinLein;
+                        });
+
+                        fuzzyKeyMatches = []
+                            .concat.apply([], fuzzyKeyMatches)
+                            .slice(0, limitLeft);
+
+                        result = result.concat(fuzzyKeyMatches);
+                    }
+                }
+
+            }
+
         }
 
     } else {
@@ -599,56 +590,130 @@ var searchSchema = function(options) {
                     fcode: d.fcode,
                     desc: d.desc,
                     geom: d.geom
-                }
+                };
             });
     }
 
     return result;
 }
 
+ // src: talisam
+ // https://github.com/Yomguithereal/talisman/blob/master/src/phonetics/lein.js
+ var getLein = function(name) {
+   if (typeof name !== 'string') {
+       throw Error('talisman/phonetics/lein: the given name is not a string.');
+   }
 
-//https://en.wikipedia.org/wiki/Levenshtein_distance#cite_note-5
-//http://www.codeproject.com/Articles/13525/Fast-memory-efficient-Levenshtein-algorithm
-var getLevenshteinDistance = function(s, t) {
-    if(s === t){
-        return 0;
+   // helpers start //
+   var pad = function(code) {
+       return (code + '0000').slice(0, 4);
+   };
+   var seq = function(target) {
+       return typeof target === 'string' ? target.split('') : target;
+   };
+   var squeeze = function (target) {
+       var isString = typeof target === 'string',
+           sequence = seq(target),
+           squeezed = [sequence[0]];
+
+       for (var i = 1, l = sequence.length; i < l; i++) {
+           if (sequence[i] !== sequence[i - 1]) {
+               squeezed.push(sequence[i]);
+           }
+       }
+
+       return isString ? squeezed.join('') : squeezed;
+   }
+   var translation = function(first, second) {
+       var index = {};
+
+       first = first.split(''),
+       second = second.split('');
+
+       if (first.length !== second.length)
+         throw Error('talisman/helpers#translation: given strings don\'t have the same length.');
+
+       for (var i = 0, l = first.length; i < l; i++)
+         index[first[i]] = second[i];
+
+       return index;
+   }
+   // helpers end //
+
+   // constants start //
+   var DROPPED = /[AEIOUYWH]/g;
+   var TRANSLATION = translation('DTMNLRBFPVCJKGQSXZ', '112233444455555555');
+   // constants end //
+
+   if (typeof name !== 'string') {
+       throw Error('talisman/phonetics/lein: the given name is not a string.');
+   }
+   var code = name
+       .toUpperCase()
+       .replace(/[^A-Z\s]/g, '');
+
+   // 1-- Keeping the first letter
+   var first = code[0];
+   code = code.slice(1);
+
+   // 2-- Dropping vowels and Y, W & H
+   code = code.replace(DROPPED, '');
+
+   // 3-- Dropping consecutive duplicates and truncating to 4 characters
+   code = squeeze(code).slice(0, 4);
+
+   // 4-- Translations
+   var backup = code;
+   code = '';
+
+   for (var i = 0, l = backup.length; i < l; i++) {
+       code += TRANSLATION[backup[i]] || backup[i];
+   }
+
+   return pad(first + code);
+ }
+
+var getIntendedKeys = function(key) {
+    var keyboard = {
+        'q': ['a', 'w'],
+        'w': ['q', 'e'],
+        'e': ['w', 'r'],
+        'r': ['e', 't'],
+        't': ['r', 't'],
+        'y': ['t', 'u'],
+        'u': ['y', 'i'],
+        'i': ['u', 'o'],
+        'o': ['i', 'p'],
+        'p': ['o', 'l'],'[': ['p'], '{': ['p'],
+        'a': ['s', 'z'],
+        's': ['a', 'd'],
+        'd': ['s', 'f'],
+        'f': ['d', 'g'],
+        'g': ['f', 'h'],
+        'h': ['g', 'j'],
+        'j': ['h', 'k'],
+        'l': ['k', 'o'], ';': ['p', 'l'], ':': ['p', 'l'],
+        'z': ['a', 'x', 's'],
+        'x': ['z', 'c', 's', 'd'],
+        'c': ['x', 'd', 'f', 'v'],
+        'v': ['c', 'f', 'g', 'b'],
+        'b': ['v', 'g', 'h', 'n'],
+        'n': ['b', 'h', 'j', 'm'],
+        'm': ['k', 'n'],
+        ',': ['m', 'k', 'l'], '<': ['m', 'k', 'l'],
+        '.': ['l'], '>': ['l']
     }
 
-    if(s.length === 0) {
-        return t.length;
-    }
+    return keyboard[key.toLowerCase()];
+}
 
-    if(t.length === 0) {
-        return s.length;
-    }
+var getFuzzyStrings = function(searchStr) {
+    var tail = searchStr.substr(1, searchStr.length);
 
-    var v0 = [];
-    var v1 = [];
-
-    var v0Len = t.length + 1;
-
-    for(var i=0; i<v0Len; i++) {
-        v0[i] = i;
-    }
-
-    for(var i=0; i<s.length; i++) {
-        v1[0] = i + 1;
-
-        for(var j=0; j<t.length; j++) {
-            var cost = 1;
-            if(s.charAt(j) === t.charAt(j)) {
-                cost = 0;
-            }
-
-            v1[j+1] = Math.min(Math.min(v1[j] + 1, v0[j + 1] + 1), v0[j] + cost);
-        }
-
-        for(var j=0; j<v0.length; j++) {
-            v0[j] = v1[j];
-        }
-    }
-
-    return v1[t.length];
+    return getIntendedKeys(searchStr[0])
+        .map(function(key) {
+            return key + tail
+        });
 }
 
 var schemaError = function(params) {
@@ -662,4 +727,7 @@ if (typeof exports !== 'undefined') {
     exports.searchSchema = searchSchema;
     exports.handleInputs = handleInputs;
     exports.TranslationServer = TranslationServer;
+    exports.getLein = getLein;
+    exports.getIntendedKeys = getIntendedKeys;
+    exports.getFuzzyStrings = getFuzzyStrings;
 }

@@ -22,20 +22,21 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #include "PoiPolygonMatchCreator.h"
 
 // hoot
 #include <hoot/core/util/Factory.h>
 #include <hoot/core/OsmMap.h>
-#include <hoot/core/conflate/MatchThreshold.h>
+#include <hoot/core/conflate/matching/MatchThreshold.h>
 #include <hoot/core/util/ConfPath.h>
 #include <hoot/core/util/ConfigOptions.h>
+#include <hoot/core/schema/OsmSchema.h>
 
 #include "PoiPolygonMatch.h"
 #include "visitors/PoiPolygonMatchVisitor.h"
-
+#include "PoiPolygonTagIgnoreListReader.h"
 
 namespace hoot
 {
@@ -55,8 +56,17 @@ Match* PoiPolygonMatchCreator::createMatch(const ConstOsmMapPtr& map, ElementId 
   {
     ConstElementPtr e1 = map->getElement(eid1);
     ConstElementPtr e2 = map->getElement(eid2);
-    const bool foundPoi = PoiPolygonMatch::isPoi(*e1) || PoiPolygonMatch::isPoi(*e2);
-    const bool foundPoly = PoiPolygonMatch::isPoly(*e1) || PoiPolygonMatch::isPoly(*e2);
+
+    const bool foundPoi =
+      OsmSchema::getInstance().isPoiPolygonPoi(
+        e1, PoiPolygonTagIgnoreListReader::getInstance().getPoiTagIgnoreList()) ||
+      OsmSchema::getInstance().isPoiPolygonPoi(
+        e2, PoiPolygonTagIgnoreListReader::getInstance().getPoiTagIgnoreList());
+    const bool foundPoly =
+      OsmSchema::getInstance().isPoiPolygonPoly(
+        e1, PoiPolygonTagIgnoreListReader::getInstance().getPolyTagIgnoreList()) ||
+      OsmSchema::getInstance().isPoiPolygonPoly(
+        e2, PoiPolygonTagIgnoreListReader::getInstance().getPolyTagIgnoreList());
 
     if (foundPoi && foundPoly)
     {
@@ -106,7 +116,10 @@ bool PoiPolygonMatchCreator::isMatchCandidate(ConstElementPtr element,
                                               const ConstOsmMapPtr& /*map*/)
 {
   return element->isUnknown() &&
-    (PoiPolygonMatch::isPoi(*element) || PoiPolygonMatch::isPoly(*element));
+    (OsmSchema::getInstance().isPoiPolygonPoi(
+       element, PoiPolygonTagIgnoreListReader::getInstance().getPoiTagIgnoreList()) ||
+     OsmSchema::getInstance().isPoiPolygonPoly(
+       element, PoiPolygonTagIgnoreListReader::getInstance().getPolyTagIgnoreList()));
 }
 
 boost::shared_ptr<MatchThreshold> PoiPolygonMatchCreator::getMatchThreshold()

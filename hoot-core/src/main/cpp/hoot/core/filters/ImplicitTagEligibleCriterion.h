@@ -22,7 +22,6 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2017 DigitalGlobe (http://www.digitalglobe.com/)
  * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #ifndef IMPLICIT_TAG_ELIGIBLE_CRITERION_H
@@ -40,7 +39,7 @@ namespace hoot
 {
 
 /**
- *
+ * Base class for filtering features which are eligible for implicit tag harvesting
  */
 class ImplicitTagEligibleCriterion : public ElementCriterion
 {
@@ -49,6 +48,8 @@ public:
   virtual QStringList getEligibleKvps(const Tags& tags) const = 0;
   virtual bool hasEligibleKvp(const Tags& tags) const = 0;
 
+  virtual QString getDescription() const
+  { return "Identifies elements eligible for type tag additions"; }
 };
 
 }

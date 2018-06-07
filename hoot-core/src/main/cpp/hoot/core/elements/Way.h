@@ -22,7 +22,7 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2015, 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #ifndef __ELEMENT_WAY_H__
 #define __ELEMENT_WAY_H__
@@ -56,9 +56,9 @@ public:
 
   Way(Status s, long id, Meters circularError, long changeset = ElementData::CHANGESET_EMPTY,
       long version = ElementData::VERSION_EMPTY,
-      unsigned int timestamp = ElementData::TIMESTAMP_EMPTY,
+      quint64 timestamp = ElementData::TIMESTAMP_EMPTY,
       QString user = ElementData::USER_EMPTY, long uid = ElementData::UID_EMPTY,
-      bool visible = ElementData::VISIBLE_EMPTY);
+      bool visible = ElementData::VISIBLE_EMPTY, long pid = WayData::PID_EMPTY);
 
   Way(const Way& way);
 
@@ -139,6 +139,13 @@ public:
   bool isOneWay() const;
 
   /**
+   * @brief isSimpleLoop - checks to see if the way starts and ends at the same
+   *                       node. If it does, return true.
+   * @return true if the way starts and ends at the same node
+   */
+  bool isSimpleLoop() const;
+
+  /**
    * Returns true if this could possibly be a valid polygon. This is only checking for rudimentary
    * conditions and doesn't look for bow ties, etc.
    */
@@ -178,6 +185,17 @@ public:
   virtual void visitRo(const ElementProvider& map, ConstElementVisitor& filter) const;
 
   virtual void visitRw(ElementProvider& map, ConstElementVisitor& filter);
+
+  /**
+   * Functions for getting/setting/resetting the parent ID, i.e. the ID of the way
+   * that this way was split from
+   */
+  bool hasPid() const { return _wayData->getPid() != WayData::PID_EMPTY; }
+  long getPid() const { return _wayData->getPid(); }
+  void setPid(long pid) { _wayData->setPid(pid); }
+  void resetPid() { _wayData->setPid(WayData::PID_EMPTY); }
+  static long getPid(const boost::shared_ptr<const Way>& p, const boost::shared_ptr<const Way>& c);
+  static long getPid(long p, long c);
 
 protected:
 

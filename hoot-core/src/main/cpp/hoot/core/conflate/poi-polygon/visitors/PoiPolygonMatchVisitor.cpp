@@ -22,20 +22,22 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #include "PoiPolygonMatchVisitor.h"
 
 // hoot
-#include <hoot/core/conflate/MatchType.h>
+#include <hoot/core/conflate/matching/MatchType.h>
 #include <hoot/core/util/ConfPath.h>
 #include <hoot/core/util/ConfigOptions.h>
 #include <hoot/core/visitors/IndexElementsVisitor.h>
 #include <hoot/core/util/Log.h>
+#include <hoot/core/schema/OsmSchema.h>
 
 #include "../PoiPolygonMatch.h"
 #include "../filters/PoiPolygonPolyCriterion.h"
 #include "../filters/PoiPolygonPoiCriterion.h"
+#include "../PoiPolygonTagIgnoreListReader.h"
 
 // Boost
 #include <boost/bind.hpp>
@@ -91,12 +93,13 @@ void PoiPolygonMatchVisitor::_checkForMatch(const boost::shared_ptr<const Elemen
     {
       const boost::shared_ptr<const Element>& n = _map->getElement(*it);
 
-      if (n->isUnknown() && PoiPolygonMatch::isPoly(*n))
+      if (n->isUnknown() &&
+          OsmSchema::getInstance().isPoiPolygonPoly(
+            n, PoiPolygonTagIgnoreListReader::getInstance().getPolyTagIgnoreList()))
       {
         // score each candidate and push it on the result vector
         PoiPolygonMatch* m =
-          new PoiPolygonMatch(
-            _map, /*from, *it,*/ _threshold, _rf, _surroundingPolyIds, _surroundingPoiIds);
+          new PoiPolygonMatch(_map, _threshold, _rf, _surroundingPolyIds, _surroundingPoiIds);
         m->setConfiguration(conf());
         m->calculateMatch(from, *it);
 
@@ -137,7 +140,9 @@ void PoiPolygonMatchVisitor::_collectSurroundingPolyIds(const boost::shared_ptr<
     {
       const boost::shared_ptr<const Element>& n = _map->getElement(*it);
 
-      if (n->isUnknown() && PoiPolygonMatch::isPoly(*n))
+      if (n->isUnknown() &&
+          OsmSchema::getInstance().isPoiPolygonPoly(
+            n, PoiPolygonTagIgnoreListReader::getInstance().getPolyTagIgnoreList()))
       {
         _surroundingPolyIds.insert(*it);
       }
@@ -164,7 +169,9 @@ void PoiPolygonMatchVisitor::_collectSurroundingPoiIds(const boost::shared_ptr<c
     {
       const boost::shared_ptr<const Element>& n = _map->getElement(*it);
 
-      if (n->isUnknown() && PoiPolygonMatch::isPoi(*n))
+      if (n->isUnknown() &&
+          OsmSchema::getInstance().isPoiPolygonPoi(
+            n, PoiPolygonTagIgnoreListReader::getInstance().getPoiTagIgnoreList()))
       {
         _surroundingPoiIds.insert(*it);
       }
@@ -200,7 +207,9 @@ bool PoiPolygonMatchVisitor::_isMatchCandidate(ConstElementPtr element)
   //POIs and their surrounding polys and polys and their surrounding POIs; note that this is
   //different than PoiPolygonMatchCreator::isMatchCandidate, which is looking at both to appease
   //the stats
-  return element->isUnknown() && PoiPolygonMatch::isPoi(*element);
+  return element->isUnknown() &&
+         OsmSchema::getInstance().isPoiPolygonPoi(
+         element, PoiPolygonTagIgnoreListReader::getInstance().getPoiTagIgnoreList());
 }
 
 boost::shared_ptr<Tgs::HilbertRTree>& PoiPolygonMatchVisitor::_getPolyIndex()

@@ -23,7 +23,7 @@
  * copyrights will be updated automatically.
  *
  * @copyright Copyright (C) 2005 VividSolutions (http://www.vividsolutions.com/)
- * @copyright Copyright (C) 2015, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #ifndef CENTROIDDISTANCEEXTRACTOR_H
 #define CENTROIDDISTANCEEXTRACTOR_H
@@ -49,6 +49,10 @@ public:
     const boost::shared_ptr<const Element>& candidate) const;
 
   virtual std::string getClassName() const { return CentroidDistanceExtractor::className(); }
+
+  virtual QString getDescription() const
+  { return "Converts target & candidate to geometries, finds their centroids, "
+           "calculates the distance between those two points"; }
 };
 
 }

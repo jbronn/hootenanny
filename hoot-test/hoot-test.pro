@@ -1,6 +1,7 @@
 # -------------------------------------------------
-# Project created by QtCreator 2011-09-29T12:27:47
+# Exposes the HootTest command line interface
 # -------------------------------------------------
+
 include(../Configure.pri)
 
 TEMPLATE = app
@@ -15,11 +16,8 @@ DEPENDPATH += \
   ../tgs/src/main/cpp/tgs/ \
   ../hoot-core/src/main/cpp/ \
   ../hoot-core-test/src/test/cpp/ \
-  ../hoot-hadoop/src/main/cpp/ \
   ../hoot-js/src/main/cpp/ \
   ../hoot-test/src/main/cpp/hoot/test \
-  ../pretty-pipes/pp-lib/src/main/cpp/ \
-  ../pretty-pipes/example/src/main/cpp/ \
 
 INCLUDEPATH += \
   $${DEPENDPATH}

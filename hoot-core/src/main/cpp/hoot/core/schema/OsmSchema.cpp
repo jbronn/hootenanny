@@ -53,6 +53,7 @@ using namespace boost;
 #include <hoot/core/schema/OsmSchemaLoader.h>
 #include <hoot/core/util/ConfigOptions.h>
 #include <hoot/core/util/FileUtils.h>
+#include <hoot/core/conflate/poi-polygon/extractors/PoiPolygonAddressScoreExtractor.h>
 
 // Qt
 #include <QDomDocument>
@@ -115,7 +116,6 @@ bool operator==(const AverageKey& k1, const AverageKey& k2)
           k1.w2 == k2.w2);
 }
 
-
 }
 
 namespace __gnu_cxx
@@ -166,12 +166,14 @@ public:
   }
 
 private:
+
   TagGraph* _graph;
 };
 
 class VertexNameComparator
 {
 public:
+
   VertexNameComparator(const TagGraph& graph) : _graph(graph) {}
 
   bool operator()(VertexId v1, VertexId v2)
@@ -180,6 +182,7 @@ public:
   }
 
 private:
+
   const TagGraph _graph;
 };
 
@@ -707,12 +710,16 @@ public:
     double result = 0.0;
 
     QString kvpn1 = normalizeEnumeratedKvp(kvp1);
+    //LOG_VART(kvpn1);
     QString kvpn2 = normalizeEnumeratedKvp(kvp2);
+    //LOG_VART(kvpn2);
 
     if (kvpn1.isEmpty() == false && kvpn2.isEmpty() == false)
     {
       VertexId id1 = _name2Vertex[kvpn1];
+      //LOG_VART(id1);
       VertexId id2 = _name2Vertex[kvpn2];
+      //LOG_VART(id2);
 
       if (_processed.find(id1) == _processed.end())
       {
@@ -730,6 +737,7 @@ public:
       {
         result = 0.0;
       }
+      //LOG_VART(result);
 
       if (id1 == id2 && kvp1 != kvp2)
       {
@@ -745,6 +753,7 @@ public:
           result = 1.0;
         }
       }
+      //LOG_VART(result);
     }
 
     return result;
@@ -1603,13 +1612,109 @@ bool OsmSchema::isArea(const Tags& t, ElementType type) const
       break;
     }
   }
+  LOG_VART(result);
 
   return result;
+} 
+
+bool OsmSchema::containsTagFromList(const Tags& tags, const QStringList tagList)
+{
+  LOG_VART(tagList.size());
+  for (int i = 0; i < tagList.size(); i++)
+  {
+    QStringList tagParts = tagList.at(i).split("=");
+    const QString key = tagParts[0];
+    LOG_VART(key);
+    const QString value = tagParts[1];
+    LOG_VART(value);
+    if ((value == "*" && tags.contains(key)) || (tags.get(key).toLower() == value))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool OsmSchema::isPoiPolygonPoly(const ConstElementPtr& e, const QStringList tagIgnoreList)
+{
+  const Tags& tags = e->getTags();
+
+//  if (isLinearHighway(tags, e->getElementType()))
+//  {
+//    return false;
+//  }
+  //Using this looser definition b/c isLinearHighway will return false if any tag is in an area
+  //category and not a linestring category, which still gives us some features we don't want to
+  //conflate with poi/poly.
+  if (tags.contains("highway"))
+  {
+    return false;
+  }
+
+  //types we don't care about at all - see #1172 as to why this can't be handled in the schema
+  //files
+  if (containsTagFromList(tags, tagIgnoreList))
+  {
+    LOG_TRACE("Contains tag from tag ignore list");
+    return false;
+  }
+  LOG_TRACE("Does not contain tag from tag ignore list");
+
+  const bool inABuildingOrPoiCategory =
+    getCategories(tags).intersects(OsmSchemaCategory::building() | OsmSchemaCategory::poi());
+  //isArea includes building too
+  const bool isPoly =
+    isArea(tags, e->getElementType()) && (inABuildingOrPoiCategory || tags.getNames().size() > 0);
+
+  //LOG_VART(e);
+  //LOG_VART(isPoly);
+  return isPoly;
+}
+
+bool OsmSchema::isPoiPolygonPoi(const ConstElementPtr& e, const QStringList tagIgnoreList)
+{
+  const Tags& tags = e->getTags();
+
+  //see note in isPoiPolygonPoly
+  if (containsTagFromList(tags, tagIgnoreList))
+  {
+    LOG_TRACE("Contains tag from tag ignore list");
+    return false;
+  }
+  LOG_TRACE("Does not contain tag from tag ignore list");
+
+  const bool isNode = e->getElementType() == ElementType::Node;
+  if (!isNode)
+  {
+    return false;
+  }
+  const bool inABuildingOrPoiCategory =
+    getCategories(tags).intersects(OsmSchemaCategory::building() | OsmSchemaCategory::poi());
+  bool isPoi = isNode && (inABuildingOrPoiCategory || tags.getNames().size() > 0);
+  LOG_VART(inABuildingOrPoiCategory);
+  LOG_VART(tags.get("uuid"));
+  LOG_VART(tags.getNames());
+  LOG_VART(isPoi);
+
+  if (!isPoi && ConfigOptions().getPoiPolygonPromotePointsWithAddressesToPois() &&
+      PoiPolygonAddressScoreExtractor::nodeHasAddress(*boost::dynamic_pointer_cast<const Node>(e)))
+  {
+    isPoi = true;
+  }
+
+  //LOG_VART(e);
+  //LOG_VART(isPoi);
+  return isPoi;
 }
 
 bool OsmSchema::isArea(const ConstElementPtr& e) const
 {
   return isArea(e->getTags(), e->getElementType());
+}
+
+bool OsmSchema::isNonBuildingArea(const ConstElementPtr& e) const
+{
+  return isArea(e) && !isBuilding(e);
 }
 
 bool OsmSchema::isAreaForStats(const Tags& t, ElementType type) const
@@ -1709,6 +1814,12 @@ bool OsmSchema::isMultiUseBuilding(const Element& e)
      osmSchema.getCategories(tags).intersects(OsmSchemaCategory::multiUse()));
 }
 
+bool OsmSchema::isMultiUse(const Element& e)
+{
+  return
+    OsmSchema::getInstance().getCategories(e.getTags()).intersects(OsmSchemaCategory::multiUse());
+}
+
 bool OsmSchema::isCollection(const Element& e) const
 {
   bool result = false;
@@ -1746,14 +1857,21 @@ bool OsmSchema::isHgisPoi(const Element& e)
 
 bool OsmSchema::isLinearHighway(const Tags& t, ElementType type)
 {
+//  if (t.contains("name"))
+//  {
+//    LOG_VART(t.get("name"));
+//  }
+
   bool result = false;
   Tags::const_iterator it = t.find("highway");
+  QString key;
 
   // Is it a legit highway?
   if ((type == ElementType::Way || type == ElementType::Relation) &&
       it != t.end() && it.value() != "")
   {
     result = true;
+    key = it.key();
   }
 
   // Maybe it's a way with nothing but a time tag...
@@ -1762,17 +1880,24 @@ bool OsmSchema::isLinearHighway(const Tags& t, ElementType type)
   {
     // We can treat it like a highway
     result = true;
+    key = it.key();
   }
 
   // Make sure this isn't an area highway section!
   if (result)
   {
     result = !isArea(t, type);
+    LOG_VART(result);
   }
+  LOG_VART(result);
 
-  if (result)
+  if (Log::getInstance().getLevel() <= Log::Trace && result)
   {
-    LOG_TRACE("isLinearHighway; key: " << it.key());
+    LOG_TRACE("isLinearHighway; key: " << key);
+    if (t.contains("name"))
+    {
+      LOG_VART(t.get("name"));
+    }
   }
 
   return result;
@@ -1826,6 +1951,31 @@ bool OsmSchema::isLinearWaterway(const Element& e)
     }
   }
   return false;
+}
+
+bool OsmSchema::isRoundabout(const Tags& tags, ElementType type)
+{
+  // If it's not a highway, it's not a roundabout
+  if (!isLinearHighway(tags, type))
+  {
+    return false;
+  }
+
+  // Now check some details...
+  bool result = false;
+  Tags::const_iterator tagIt = tags.find("junction");
+
+  if (tagIt != tags.end() && tagIt.value().toLower() == "roundabout")
+  {
+    result = true;
+  }
+
+  if (result)
+  {
+    LOG_TRACE("isRoundabout; key: " << tagIt.key());
+  }
+
+  return result;
 }
 
 bool OsmSchema::isList(const QString& /*key*/, const QString& value)
@@ -1897,6 +2047,23 @@ bool OsmSchema::isPoi(const Element& e)
   }
 
   return result;
+}
+
+bool OsmSchema::isRailway(const Element& e)
+{
+  if (e.getElementType() == ElementType::Way || e.getElementType() == ElementType::Relation)
+  {
+    const Tags& tags = e.getTags();
+    for (Tags::const_iterator it = tags.constBegin(); it != tags.constEnd(); ++it)
+    {
+      if (it.key() == "railway" || isAncestor(it.key(), "railway") ||
+          (it.key() == "type" && isAncestor("railway=" + it.value(), "railway")))
+      {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 bool OsmSchema::isReversed(const Element& e) const

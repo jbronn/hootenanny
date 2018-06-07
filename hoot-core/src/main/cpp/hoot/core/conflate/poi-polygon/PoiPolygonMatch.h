@@ -30,10 +30,10 @@
 // hoot
 #include <hoot/core/OsmMap.h>
 #include <hoot/core/elements/ElementId.h>
-#include <hoot/core/conflate/Match.h>
-#include <hoot/core/conflate/MatchThreshold.h>
-#include <hoot/core/conflate/MatchDetails.h>
-#include <hoot/core/conflate/MatchClassification.h>
+#include <hoot/core/conflate/matching/Match.h>
+#include <hoot/core/conflate/matching/MatchThreshold.h>
+#include <hoot/core/conflate/matching/MatchDetails.h>
+#include <hoot/core/conflate/matching/MatchClassification.h>
 #include <hoot/core/util/Configurable.h>
 #include <hoot/core/util/ConfigOptions.h>
 
@@ -59,7 +59,6 @@ public:
   virtual void setConfiguration(const Settings& conf);
 
   void calculateMatch(const ElementId& eid1, const ElementId& eid2);
-  void calculateMatchWeka(const ElementId& eid1, const ElementId& eid2);
 
   virtual const MatchClassification& getClassification() const { return _class; }
 
@@ -81,33 +80,6 @@ public:
   virtual std::map<QString, double> getFeatures(const ConstOsmMapPtr& m) const;
 
   /**
-   * Determines criteria for a feature to be considered a polygon for matching by
-   * PoiPolygonMatch
-   *
-   * @param element to be evaluated
-   * @return true if the element meets the criteria; false otherwise
-   */
-  static bool isPoly(const Element& e);
-
-  /**
-   * @Determines criteria for a feature to be considered a POI for matching by
-   * PoiPolygonMatch
-   *
-   * @param element to be evaluated
-   * @return true if the element meets the criteria; false otherwise
-   */
-  static bool isPoi(const Element& e);
-
-  /**
-   * Determines criteria for a feature to be considered an area by
-   * PoiPolygonMatch
-   *
-   * @param element to be evaluated
-   * @return true if the element meets the criteria; false otherwise
-   */
-  static bool isArea(const Element& e);
-
-  /**
    * Pass through to the same method in PoiPolygonDistanceTruthRecorder
    */
   static void printMatchDistanceInfo();
@@ -117,7 +89,7 @@ public:
    */
   static void resetMatchDistanceInfo();
 
-  virtual QString explain() const;
+  virtual QString explain() const { return _explainText; }
 
   void setMatchDistanceThreshold(const double distance);
   void setReviewDistanceThreshold(const double distance);
@@ -161,9 +133,10 @@ private:
   double _matchDistanceThreshold;
   //max distance allowed between the elements where they can be considered for review
   double _reviewDistanceThreshold;
+  double _reviewDistancePlusCe;
   //true if the distance between the elements, given CE, is within the review distance; absolute
   //requirement for matching
-  bool _closeMatch;
+  bool _closeDistanceMatch;
 
   double _typeScore;
   double _typeScoreThreshold;
@@ -191,8 +164,6 @@ private:
 
   boost::shared_ptr<const PoiPolygonRfClassifier> _rf;
 
-  ConfigOptions _opts;
-
   QString _explainText;
 
   void _categorizeElementsByGeometryType(const ElementId& eid1, const ElementId& eid2);
@@ -207,6 +178,8 @@ private:
   unsigned int _getAddressEvidence(ConstElementPtr poi, ConstElementPtr poly);
 
   bool _featureHasReviewIfMatchedType(ConstElementPtr element) const;
+
+  bool _skipForReviewTypeDebugging() const;
 };
 
 }

@@ -22,7 +22,6 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2017 DigitalGlobe (http://www.digitalglobe.com/)
  * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 
@@ -426,7 +425,7 @@ int Tags::getNonDebugCount() const
     QString key = it.key();
     if (!key.startsWith(MetadataTags::HootTagPrefix()) && key != "created_by" && it.value() != "")
     {
-      LOG_TRACE("non-debug key: " + key);
+      //LOG_TRACE("non-debug key: " + key);
       count++;
     }
   }
@@ -496,6 +495,42 @@ bool Tags::operator==(const Tags& other) const
     l1.sort();
     QStringList l2 = split(other.get(it.key()));
     l2.sort();
+    if (l1 != l2)
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+QStringList Tags::dataOnlyTags(const Tags& tags) const
+{
+  QStringList t;
+  for (Tags::const_iterator it = tags.begin(); it != tags.end(); ++it)
+  {
+    if (!it.key().startsWith(MetadataTags::HootTagPrefix()))
+      t.append(it.value());
+  }
+  return t;
+}
+
+bool Tags::dataOnlyEqual(const Tags& other) const
+{
+  QStringList l1 = dataOnlyTags(*this);
+  QStringList l2 = dataOnlyTags(other);
+
+  if (l1.size() != l2.size())
+  {
+    return false;
+  }
+
+  for (int index = 0; index < l1.size(); ++index)
+  {
+    QStringList keys1 = split(l1[index]);
+    keys1.sort();
+    QStringList keys2 = split(l2[index]);
+    keys2.sort();
     if (l1 != l2)
     {
       return false;
@@ -644,6 +679,34 @@ void Tags::_valueRegexParser(const QString& str, QString& num, QString& units) c
   QRegExp sRegExp("(\\d+(\\.\\d+)?)");
   QString copyStr = str;
   units = copyStr.replace(sRegExp, QString("")).trimmed();
+}
+
+bool Tags::hasAnyKvp(const QStringList kvps) const
+{
+  for (int i = 0; i < kvps.size(); i++)
+  {
+    const QString kvp = kvps.at(i);
+    if (!kvp.contains("="))
+    {
+      throw IllegalArgumentException("Invalid kvp: " + kvp);
+    }
+    const QStringList kvpParts = kvp.split("=");
+    if (!kvpParts.size() == 2)
+    {
+      throw IllegalArgumentException("Invalid kvp: " + kvp);
+    }
+    const QString key = kvpParts[0];
+    const QString value = kvpParts[1];
+    if (value != "*" && get(key) == value)
+    {
+      return true;
+    }
+    else if (value == "*" && contains(key))
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 }

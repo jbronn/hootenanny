@@ -22,7 +22,7 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #ifndef ADDEXPORTTAGSVISITOR_H
 #define ADDEXPORTTAGSVISITOR_H
@@ -44,13 +44,17 @@ namespace hoot
 class AddExportTagsVisitor : ElementVisitor
 {
 public:
+
   AddExportTagsVisitor();
 
   static std::string className() { return "hoot::AddExportTagsVisitor"; }
 
   virtual void visit(const ElementPtr& e);
 
+  virtual QString getDescription() const { return "Adds tags needed for exporting map data"; }
+
 private:
+
   bool _includeCircularError;
   bool _includeDebug;
 };

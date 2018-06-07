@@ -22,7 +22,7 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #ifndef POIPOLYGONADDRESSSCOREEXTRACTOR_H
 #define POIPOLYGONADDRESSSCOREEXTRACTOR_H
@@ -36,8 +36,9 @@ namespace hoot
 {
 
 /**
- * Calculates the address similarity score of two features.  Only exact string matches yield a
- * positive score.  This translates addresses, but doesn't handle abbreviations.
+ * Calculates the address similarity score of two features involved in POI/Polygon conflation.
+ * Only exact string matches yield a positive score.  This translates addresses, but doesn't
+ * handle abbreviations.
  */
 class PoiPolygonAddressScoreExtractor : public FeatureExtractorBase
 {
@@ -69,12 +70,33 @@ public:
                          const ConstElementPtr& poly) const;
 
   /**
-   * Determines if an element has an address
+   * Determines if a node has an address
    *
-   * @param element the element to examine for an address
-   * @return true if the element has an address; false otherwise
+   * @param node the node to examine for an address
+   * @return true if the node has an address; false otherwise
    */
-  static bool hasAddress(const Element& element);
+  static bool nodeHasAddress(const Node& node);
+
+  /**
+   *
+   *
+   * @param element
+   * @param map
+   * @return
+   */
+  static bool elementHasAddress(const ConstElementPtr& element, const OsmMap& map);
+
+  /**
+   *
+   *
+   * @param element
+   * @param map
+   * @return
+   */
+  static QSet<QString> getAddresses(const ConstElementPtr& element, const OsmMap& map);
+
+  virtual QString getDescription() const
+  { return "Calculates the address similarity score of two features involved in POI/Polygon conflation"; }
 
 private:
 

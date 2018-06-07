@@ -49,6 +49,7 @@ namespace hoot
 class OsmGbdxJsonWriter : public OsmJsonWriter
 {
 public:
+
   static std::string className() { return "hoot::OsmGbdxJsonWriter"; }
 
   OsmGbdxJsonWriter(int precision = ConfigOptions().getWriterPrecision());
@@ -72,8 +73,13 @@ public:
    */
   virtual bool isSupported(QString url) { return url.toLower().endsWith(".gbdx"); }
 
+  virtual QString supportedFormats() { return ".gdbx"; }
+
 protected:
+
   QDir _outputDir;
+  QString _outputFileName;
+  int _fileNumber;
 
   /**
    * @brief Close the open file and open a unique file for output
@@ -121,12 +127,6 @@ protected:
    * @param element
    */
   void _writeFeature(ConstElementPtr element);
-
-  /**
-   * @brief _writeMeta Write node/way/relation metadata, i.e. timestamp, version, and visible
-   * @param element
-   */
-//  void _writeMeta(ConstElementPtr element);
 
   /**
    * @brief _writeGeometry Write out the geometry in GeoJSON format based on the type

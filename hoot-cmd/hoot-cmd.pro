@@ -1,5 +1,5 @@
 # -------------------------------------------------
-# Project created by QtCreator 2011-09-29T12:27:47
+# Exposes the hoot command line interface
 # -------------------------------------------------
 
 QT += testlib \
@@ -12,7 +12,6 @@ DEPENDPATH += \
     ../tgs/src/main/cpp/tgs/ \
     ../hoot-core/src/main/cpp/hoot/core \
     ../hoot-core/src/main/cpp/ \
-    ../hoot-hadoop/src/main/cpp/ \
     ../hoot-js/src/main/cpp/ \
 
 INCLUDEPATH += \
@@ -25,10 +24,6 @@ CONFIG += rtti \
 include(../Configure.pri)
 
 LIBS += -L../tgs/ -lTgs -L../lib/ -lHootCore -lHootJs -ltbs -lnode
-
-hadoop {
-  LIBS += -lHootHadoop -lhadooppipes -lhadooputils
-}
 
 cppunit {
   LIBS += -lHootCoreTest

@@ -22,7 +22,7 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2015, 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #include "WaySubline.h"
 
@@ -69,13 +69,15 @@ WaySubline::WaySubline(const WayLocation& start, const WayLocation& end) :
   _start(start),
   _end(end)
 {
-  assert(_start.getWay() == _end.getWay());
 }
 
 WaySubline& WaySubline::operator=(const WaySubline& from)
 {
-  _start = from.getStart();
-  _end = from.getEnd();
+  if (this != &from)
+  {
+    _start = from.getStart();
+    _end = from.getEnd();
+  }
   return *this;
 }
 
@@ -146,7 +148,7 @@ QString WaySubline::toString() const
   return "start: " + getStart().toString() + " end: " + getEnd().toString();
 }
 
-WayPtr WaySubline::toWay(const OsmMapPtr& map, GeometryConverter::NodeFactory* nf) const
+WayPtr WaySubline::toWay(const OsmMapPtr& map, GeometryConverter::NodeFactory* nf, bool reuse) const
 {
   ConstWayPtr way = _start.getWay();
 
@@ -160,7 +162,11 @@ WayPtr WaySubline::toWay(const OsmMapPtr& map, GeometryConverter::NodeFactory* n
 
   Meters ce = way->getRawCircularError();
 
-  WayPtr result(new Way(way->getStatus(), map->createNextWayId(), ce));
+  long way_id = way->getId();
+  if (!reuse)
+    way_id = map->createNextWayId();
+  WayPtr result(new Way(way->getStatus(), way_id, ce));
+  result->setPid(way->getPid());
   result->setTags(way->getTags());
 
   int includedStartIndex = _start.getSegmentIndex();

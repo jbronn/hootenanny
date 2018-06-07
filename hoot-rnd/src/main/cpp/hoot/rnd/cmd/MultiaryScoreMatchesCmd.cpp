@@ -22,18 +22,18 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 
 // Hoot
 #include <hoot/core/cmd/BaseCommand.h>
-#include <hoot/core/conflate/MatchThreshold.h>
+#include <hoot/core/conflate/matching/MatchThreshold.h>
 #include <hoot/core/conflate/UnifyingConflator.h>
 #include <hoot/core/io/OsmMapWriterFactory.h>
 #include <hoot/core/io/OsmXmlWriter.h>
 #include <hoot/core/ops/NamedOp.h>
 #include <hoot/core/schema/OsmSchema.h>
-#include <hoot/core/scoring/multiary/MultiaryMatchComparator.h>
+#include <hoot/rnd/scoring/multiary/MultiaryMatchComparator.h>
 #include <hoot/core/util/Factory.h>
 #include <hoot/core/util/Log.h>
 #include <hoot/core/util/MapProjector.h>
@@ -100,6 +100,9 @@ public:
   }
 
   virtual QString getName() const { return "multiary-score-matches"; }
+
+  virtual QString getDescription() const
+  { return "(experimental) Scores how well multiary-conflate performs"; }
 
   virtual int runSimple(QStringList args)
   {

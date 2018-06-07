@@ -22,22 +22,22 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2015, 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #include "FindIntersectionsOp.h"
 
 // Hoot
 #include <hoot/core/util/Factory.h>
 #include <hoot/core/util/MapProjector.h>
-#include <hoot/core/conflate/DuplicateNameRemover.h>
-#include <hoot/core/conflate/DuplicateWayRemover.h>
-#include <hoot/core/conflate/ImpliedDividedMarker.h>
-#include <hoot/core/conflate/SmallWayMerger.h>
+#include <hoot/core/ops/DuplicateNameRemover.h>
+#include <hoot/core/ops/DuplicateWayRemover.h>
+#include <hoot/core/conflate/highway/ImpliedDividedMarker.h>
+#include <hoot/core/conflate/merging/SmallWayMerger.h>
 #include <hoot/core/ops/NamedOp.h>
 #include <hoot/core/ops/SuperfluousNodeRemover.h>
 #include <hoot/core/ops/VisitorOp.h>
-#include <hoot/core/conflate/SuperfluousWayRemover.h>
-#include <hoot/core/conflate/UnlikelyIntersectionRemover.h>
+#include <hoot/core/ops/SuperfluousWayRemover.h>
+#include <hoot/core/ops/UnlikelyIntersectionRemover.h>
 #include <hoot/core/conflate/splitter/DualWaySplitter.h>
 #include <hoot/core/conflate/splitter/IntersectionSplitter.h>
 #include <hoot/core/filters/TagCriterion.h>
@@ -111,7 +111,6 @@ void FindIntersectionsOp::apply(boost::shared_ptr<OsmMap> &map)
   // then remove everything except for the intersection that we found
   boost::shared_ptr<IntersectionFilter> intersectionFilter(new IntersectionFilter(v->getIntersections()));
   VisitorOp(new RemoveElementsVisitor(intersectionFilter)).apply(map);
-
 
   // Apply any user specified operations.
   NamedOp(ConfigOptions().getMapCleanerTransforms()).apply(map);

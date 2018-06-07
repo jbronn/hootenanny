@@ -34,6 +34,9 @@
         "geometries": [
             "linestring"
         ],
+        "aliases":[
+        "natural=land_water_boundary"
+        ],
         "isA": "natural",
         "name": "natural=coastline",
         "objectType": "tag"
@@ -46,6 +49,15 @@
         ],
         "isA": "natural",
         "name": "natural=cliff",
+        "objectType": "tag"
+    },
+    {
+        "geometries": ["linestring"],
+        "isA": "natural",
+        "name": "natural=shear_wall",
+        "similarTo": [
+            { "name": "natural=cliff", "weight": 0.8 }
+         ],
         "objectType": "tag"
     },
     {
@@ -104,9 +116,17 @@
             "node",
             "area"
         ],
+        "categories": [
+            "multiuse"
+        ],
         "isA": "natural",
         "name": "natural=water",
-        "objectType": "tag"
+        "objectType": "tag",
+        "similarTo": [
+            { "name": "emergency=fire_water_pond", "weight": 0.9 },
+            { "name": "water=lake", "weight": 0.9 },
+            { "name": "water=pond", "weight": 0.9 }
+        ]
     },
     {
         "isA": "natural",
@@ -114,6 +134,9 @@
         "objectType": "tag"
     },
     {
+        "categories": [
+            "multiuse"
+        ],
         "isA": "natural",
         "name": "natural=wood",
         "objectType": "tag"

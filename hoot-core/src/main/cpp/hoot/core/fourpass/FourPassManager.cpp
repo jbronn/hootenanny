@@ -22,7 +22,7 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2015, 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 
 #include "FourPassManager.h"
@@ -33,7 +33,7 @@
 #include <hoot/core/conflate/NodeReplacements.h>
 #include <hoot/core/conflate/OutsideBoundsRemover.h>
 #include <hoot/core/ops/SuperfluousNodeRemover.h>
-#include <hoot/core/conflate/TileBoundsCalculator.h>
+#include <hoot/core/conflate/tile/TileBoundsCalculator.h>
 #include <hoot/core/util/HootException.h>
 #include <hoot/core/util/NotImplementedException.h>
 #include <hoot/core/util/Log.h>

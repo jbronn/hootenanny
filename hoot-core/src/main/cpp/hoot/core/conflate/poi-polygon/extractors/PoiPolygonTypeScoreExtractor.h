@@ -22,12 +22,12 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #ifndef POIPOLYGONTYPESCOREEXTRACTOR_H
 #define POIPOLYGONTYPESCOREEXTRACTOR_H
 
-// hoot
+// Hoot
 #include <hoot/core/elements/Element.h>
 #include <hoot/core/conflate/extractors/FeatureExtractorBase.h>
 #include <hoot/core/util/Configurable.h>
@@ -48,6 +48,8 @@ public:
   static QString poiBestKvp;
   //best type kvp match for the poly
   static QString polyBestKvp;
+  //custom type matching types that failed
+  static QStringList failedMatchRequirements;
 
   static std::string className() { return "hoot::PoiPolygonTypeScoreExtractor"; }
 
@@ -75,17 +77,21 @@ public:
    */
   static bool isPark(ConstElementPtr element);
 
-  //static bool isRecCenter(/*ConstElementPtr element*/const QString elementName);
-
-  //static bool isBuildingIsh(ConstElementPtr element, const QString elementName);
-
   static bool isParkish(ConstElementPtr element);
-  //static bool isPlayArea(/*ConstElementPtr element*/const QString elementName);
   static bool isPlayground(ConstElementPtr element);
   static bool isSport(ConstElementPtr element);
-  static bool isSchool(ConstElementPtr element);
   static bool isRestroom(ConstElementPtr element);
   static bool isParking(ConstElementPtr element);
+
+  static bool isSchool(ConstElementPtr element);
+  static bool isSpecificSchool(ConstElementPtr element);
+  static bool specificSchoolMatch(ConstElementPtr element1, ConstElementPtr element2);
+
+  static bool isReligion(ConstElementPtr element);
+  static bool isReligion(const Tags& tags);
+
+  static bool isRestaurant(ConstElementPtr element);
+  static bool isRestaurant(const Tags& tags);
 
   /**
    * Determines if an element has more than one type associated with it
@@ -103,6 +109,8 @@ public:
    */
   static bool hasType(ConstElementPtr element);
 
+  static bool hasSpecificType(ConstElementPtr element);
+
   double getTypeScoreThreshold() { return _typeScoreThreshold; }
   void setTypeScoreThreshold(double threshold) { _typeScoreThreshold = threshold; }
 
@@ -111,6 +119,9 @@ public:
 
   bool getPrintMatchDistanceTruth() { return _printMatchDistanceTruth; }
   void setPrintMatchDistanceTruth(bool print) { _printMatchDistanceTruth = print; }
+
+  virtual QString getDescription() const
+  { return "Scores element type similarity for POI/Polygon conflation"; }
 
 private:
 
@@ -123,7 +134,7 @@ private:
   QStringList _getRelatedTags(const Tags& tags) const;
   bool _failsCuisineMatch(const Tags& t1, const Tags& t2) const;
   bool _failsSportMatch(const Tags& t1, const Tags& t2) const;
-
+  bool _failsReligionMatch(const Tags& t1, const Tags& t2) const;
 };
 
 }

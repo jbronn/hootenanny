@@ -22,7 +22,7 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2015, 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #ifndef ELEMENT_DATA_H
 #define ELEMENT_DATA_H
@@ -57,7 +57,7 @@ public:
 
   static long CHANGESET_EMPTY;
   static long VERSION_EMPTY;
-  static unsigned int TIMESTAMP_EMPTY;
+  static quint64 TIMESTAMP_EMPTY;
   static QString USER_EMPTY;
   static long UID_EMPTY;
   static bool VISIBLE_EMPTY;
@@ -81,8 +81,8 @@ public:
   long getVersion() const { return _version; }
   void setVersion(long version) { _version = version; }
 
-  unsigned int getTimestamp() const { return _timestamp; }
-  void setTimestamp(unsigned int timestamp) { _timestamp = timestamp; }
+  quint64 getTimestamp() const { return _timestamp; }
+  void setTimestamp(quint64 timestamp) { _timestamp = timestamp; }
 
   QString getUser() const { return _user; }
   void setUser(QString user) { _user = user; }
@@ -109,7 +109,7 @@ protected:
   ElementData(long id = LLONG_MIN, const Tags& tags = Tags(), Meters circularError = -1,
               long changeset = ElementData::CHANGESET_EMPTY,
               long version = ElementData::VERSION_EMPTY,
-              unsigned int timestamp = ElementData::TIMESTAMP_EMPTY,
+              quint64 timestamp = ElementData::TIMESTAMP_EMPTY,
               QString user = ElementData::USER_EMPTY, long uid = ElementData::UID_EMPTY,
               bool visible = ElementData::VISIBLE_EMPTY);
 
@@ -118,7 +118,7 @@ protected:
   Meters _circularError;
   long _changeset;
   long _version;
-  unsigned int _timestamp;
+  quint64 _timestamp;
   QString _user;
   long _uid;
   bool _visible;
@@ -126,17 +126,17 @@ protected:
 };
 
 inline ElementData::ElementData(long id, const Tags& tags, Meters circularError, long changeset,
-                         long version, unsigned int timestamp, QString user, long uid,
-                         bool visible) :
-  _id(id),
-  _tags(tags),
-  _circularError(circularError),
-  _changeset(changeset),
-  _version(version),
-  _timestamp(timestamp),
-  _user(user),
-  _uid(uid),
-  _visible(visible)
+                         long version, quint64 timestamp, QString user, long uid,
+                         bool visible)
+  : _id(id),
+    _tags(tags),
+    _circularError(circularError),
+    _changeset(changeset),
+    _version(version),
+    _timestamp(timestamp),
+    _user(user),
+    _uid(uid),
+    _visible(visible)
 {
 }
 

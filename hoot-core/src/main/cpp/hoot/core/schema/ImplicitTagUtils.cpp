@@ -22,7 +22,6 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2017 DigitalGlobe (http://www.digitalglobe.com/)
  * @copyright Copyright (C) 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #include "ImplicitTagUtils.h"
@@ -36,14 +35,14 @@ namespace hoot
 
 void ImplicitTagUtils::cleanName(QString& name)
 {
-  name =
-    name.replace("(", "").replace(")", "").replace(".", "").replace("/", " ").replace("<", "")
-        .replace(">", "").replace("[", "").replace("]", "").replace("@", "").replace("&", "and")
-        .replace("(historical)", "");
   if (name.startsWith("-"))
   {
     name = name.replace(0, 1, "");
   }
+  name =
+    name.replace("(", "").replace(")", "").replace(".", "").replace("/", " ").replace("<", "")
+        .replace(">", "").replace("[", "").replace("]", "").replace("@", "").replace("&", "and")
+        .replace("(historical)", "").replace("-", " ");
   if (name.startsWith("_"))
   {
     name = name.replace(0, 1, "");
@@ -52,8 +51,8 @@ void ImplicitTagUtils::cleanName(QString& name)
   //another possibility here might be to replace name multiple spaces with one
 
   //This needs to be expanded.
-  if (name.at(0).isDigit() &&
-      (name.endsWith("th") || name.endsWith("nd") || name.endsWith("rd") || name.endsWith("st") ||
+  if (!name.isEmpty() && name.at(0).isDigit() &&
+      (name.endsWith("th") || name.endsWith("nd") || name.endsWith("rd") ||
        name.endsWith("ave") || name.endsWith("avenue") || name.endsWith("st") ||
        name.endsWith("street") || name.endsWith("pl") || name.endsWith("plaza")))
   {
@@ -71,6 +70,7 @@ QStringList ImplicitTagUtils::translateNamesToEnglish(const QStringList names, c
   else
   {
     QString altName = tags.get("alt_name");
+    LOG_VART(altName);
     for (int i = 0; i < names.size(); i++)
     {
       const QString name = names.at(i);
@@ -96,7 +96,6 @@ QStringList ImplicitTagUtils::translateNamesToEnglish(const QStringList names, c
     }
   }
   LOG_VART(filteredNames);
-  assert(!filteredNames.isEmpty());
 
   return filteredNames;
 }

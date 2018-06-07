@@ -2,10 +2,10 @@
 @Library('radiant-pipeline-library')_
 
 pipeline {
-    agent any
+    agent { label 'master' }
     triggers {
         // Set nightly triggers
-        cron((BRANCH_NAME == "master" || BRANCH_NAME == "develop") ? "H H(21-22) * * 1-5" : "")
+        cron((BRANCH_NAME == "master" || BRANCH_NAME == "develop") ? "H H(20-21) * * 1-5" : "")
     }
     // Configurable parameters for users to skip steps and control pipeline behavior
     parameters {
@@ -18,6 +18,7 @@ pipeline {
         booleanParam(name: 'Core_tests', defaultValue: true)
         booleanParam(name: 'Services_tests', defaultValue: true)
         booleanParam(name: 'UI_tests', defaultValue: true)
+        booleanParam(name: 'Sonar', defaultValue: false)
         string(name: 'Box', defaultValue: 'default', description: 'Vagrant Box')
     }
     stages {
@@ -80,7 +81,7 @@ pipeline {
                     expression { return params.Configure_Tests }
                     // Work around to run configuration tests during nightly cron triggers but not on commits to develop.  Logic can be udpated
                     // once this https://issues.jenkins-ci.org/browse/JENKINS-41272 is implemented
-                    expression { return Calendar.instance.get(Calendar.HOUR_OF_DAY) in 21..23 }
+                    expression { return Calendar.instance.get(Calendar.HOUR_OF_DAY) in 20..22 }
                 }
             }
             steps {
@@ -100,19 +101,18 @@ pipeline {
                 '''
                 
                 // Perform remainder of provisioning
-                sh "vagrant provision ${params.Box} --provision-with build,EGD,tomcat,mapnik,hadoop"
+                sh "vagrant provision ${params.Box} --provision-with build,EGD,tomcat,mapnik"
             }       
         }
         stage("Core Tests") {
             when { expression { return params.Core_tests } }
             steps {
-                sh "vagrant ssh ${params.Box} -c 'cd hoot; source ./SetupEnv.sh; hoot --version --debug; bin/HootTest --diff --glacial --parallel \$(nproc)'"
+                sh "vagrant ssh ${params.Box} -c 'cd hoot; source ./SetupEnv.sh; hoot version --debug; bin/HootTest --diff --glacial --parallel \$(nproc)'"
             }
         }
         stage("Services Tests") {
             when { expression { return params.Services_tests } }
             steps {
-                sh "vagrant ssh ${params.Box} -c 'cd hoot; make -sj`nproc` pp-test'"
                 sh "vagrant ssh ${params.Box} -c 'cd hoot; make -sj`nproc` plugins-test'"
                 sh "vagrant ssh ${params.Box} -c 'cd hoot; make -sj`nproc` services-test'"
             }
@@ -121,6 +121,23 @@ pipeline {
             when { expression { return params.UI_tests } }
             steps {
                 sh "vagrant ssh ${params.Box} -c 'cd hoot; make -s ui-test'"
+            }
+        }
+        stage("Sonar") {
+            when {
+                anyOf {
+                    expression { return params.Sonar }
+                    // Work around to run sonar scans during nightly cron triggers but not on commits to develop.  Logic can be udpated
+                    // once this https://issues.jenkins-ci.org/browse/JENKINS-41272 is implemented
+                    expression { return Calendar.instance.get(Calendar.HOUR_OF_DAY) in 20..23 }
+                }
+            }
+            steps {
+                // rysnc the build folders back to host system so scan
+                sh "vagrant rsync-back ${params.Box}"
+                withSonarQubeEnv('Breeze Sonarqube') {
+                    sh "cd hoot-services; mvn sonar:sonar"
+                }
             }
         }
     }

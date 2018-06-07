@@ -22,7 +22,7 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2015, 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 
 // Hoot
@@ -30,8 +30,7 @@
 #include <hoot/core/util/MapProjector.h>
 #include <hoot/core/cmd/BaseCommand.h>
 #include <hoot/core/conflate/MapCleaner.h>
-#include <hoot/core/conflate/MatchCreator.h>
-#include <hoot/core/conflate/polygon/BuildingMatchCreator.h>
+#include <hoot/core/conflate/matching/MatchCreator.h>
 #include <hoot/core/io/ArffReader.h>
 #include <hoot/core/scoring/MatchFeatureExtractor.h>
 #include <hoot/core/util/ConfigOptions.h>
@@ -60,7 +59,10 @@ public:
 
   BuildRfCmd() { }
 
-  virtual QString getName() const { return "build-rf"; }
+  virtual QString getName() const { return "model-rf-build"; }
+
+  virtual QString getDescription() const
+  { return "Creates a random forest model from a .arff file"; }
 
   virtual int runSimple(QStringList args)
   {

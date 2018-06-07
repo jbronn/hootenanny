@@ -22,7 +22,7 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2015, 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2015, 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 
 #include "Way.h"
@@ -52,18 +52,17 @@ namespace hoot
 {
 
 Way::Way(Status s, long id, Meters circularError, long changeset, long version,
-         unsigned int timestamp, QString user, long uid, bool visible)
-: Element(s)
+         quint64 timestamp, QString user, long uid, bool visible, long pid)
+  : Element(s)
 {
-  _wayData.reset(new WayData(id, changeset, version, timestamp, user, uid, visible));
+  _wayData.reset(new WayData(id, changeset, version, timestamp, user, uid, visible, pid));
   _getElementData().setCircularError(circularError);
 }
 
-Way::Way(const Way& from) :
-Element(from.getStatus()),
-_wayData(from._wayData)
+Way::Way(const Way& from)
+  : Element(from.getStatus()),
+    _wayData(from._wayData)
 {
-
 }
 
 Way::~Way()
@@ -227,6 +226,11 @@ bool Way::isOneWay() const
   return result;
 }
 
+bool Way::isSimpleLoop() const
+{
+  return (getFirstNodeId() == getLastNodeId());
+}
+
 bool Way::isValidPolygon() const
 {
   size_t nc = getNodeCount();
@@ -330,6 +334,8 @@ QString Way::toString() const
   ss << "version: " << getVersion() << endl;
   ss << "visible: " << getVisible() << endl;
   ss << "circular error: " << getCircularError();
+  if (hasPid())
+    ss << "parent id: " << getPid() << endl;
   return QString::fromStdString(ss.str());
 }
 
@@ -341,6 +347,19 @@ bool Way::isFirstLastNodeIdentical() const
   }
 
   return ( getFirstNodeId() == getLastNodeId() );
+}
+
+long Way::getPid(const ConstWayPtr& p, const ConstWayPtr& c)
+{
+  if (!p && !c)   return WayData::PID_EMPTY;
+  else            return Way::getPid(p->getPid(), c->getPid());
+}
+
+long Way::getPid(long p, long c)
+{
+  if (p != WayData::PID_EMPTY)      return p;
+  else if(c != WayData::PID_EMPTY)  return c;
+  else                              return WayData::PID_EMPTY;
 }
 
 }

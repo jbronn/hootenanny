@@ -22,13 +22,14 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #include "OsmApiDbReader.h"
 
 // hoot
 #include <hoot/core/util/Factory.h>
 #include <hoot/core/util/Settings.h>
+#include <hoot/core/util/OsmUtils.h>
 #include <hoot/core/elements/ElementId.h>
 #include <hoot/core/elements/ElementType.h>
 #include <hoot/core/io/ApiDb.h>
@@ -36,6 +37,7 @@
 
 // Qt
 #include <QUrl>
+#include <QDateTime>
 
 using namespace geos::geom;
 using namespace std;
@@ -129,6 +131,10 @@ NodePtr OsmApiDbReader::_resultToNode(const QSqlQuery& resultIterator, OsmMap& m
   const double lon =
     resultIterator.value(ApiDb::NODES_LONGITUDE).toLongLong() / (double)ApiDb::COORDINATE_SCALE;
 
+  // Timestamp
+  QDateTime dt = resultIterator.value(ApiDb::NODES_TIMESTAMP).toDateTime();
+  dt.setTimeSpec(Qt::UTC);
+
   NodePtr node(
     Node::newSp(
       _status,
@@ -138,12 +144,12 @@ NodePtr OsmApiDbReader::_resultToNode(const QSqlQuery& resultIterator, OsmMap& m
       _defaultCircularError,
       resultIterator.value(ApiDb::NODES_CHANGESET).toLongLong(),
       resultIterator.value(ApiDb::NODES_VERSION).toLongLong(),
-      resultIterator.value(ApiDb::NODES_TIMESTAMP).toUInt()));
+      dt.toMSecsSinceEpoch() / 1000));
 
   _parseAndSetTagsOnElement(node);
   _updateMetadataOnElement(node);
   //we want the reader's status to always override any existing status
-  if (!_keepFileStatus && _status != Status::Invalid)
+  if (!_keepStatusTag && _status != Status::Invalid)
   {
     node->setStatus(_status);
   }
@@ -167,6 +173,10 @@ WayPtr OsmApiDbReader::_resultToWay(const QSqlQuery& resultIterator, OsmMap& map
     LOG_VARD(newWayId);
   }
 
+  // Timestamp
+  QDateTime dt = resultIterator.value(ApiDb::WAYS_TIMESTAMP).toDateTime();
+  dt.setTimeSpec(Qt::UTC);
+
   WayPtr way(
     new Way(
       _status,
@@ -174,7 +184,7 @@ WayPtr OsmApiDbReader::_resultToWay(const QSqlQuery& resultIterator, OsmMap& map
       _defaultCircularError,
       resultIterator.value(ApiDb::WAYS_CHANGESET).toLongLong(),
       resultIterator.value(ApiDb::WAYS_VERSION).toLongLong(),
-      resultIterator.value(ApiDb::WAYS_TIMESTAMP).toUInt()));
+      dt.toMSecsSinceEpoch() / 1000));
 
   // if performance becomes an issue, try reading these out in batch at the same time
   // the element results are read
@@ -188,7 +198,7 @@ WayPtr OsmApiDbReader::_resultToWay(const QSqlQuery& resultIterator, OsmMap& map
   _parseAndSetTagsOnElement(way);
   _updateMetadataOnElement(way);
   //we want the reader's status to always override any existing status
-  if (!_keepFileStatus && _status != Status::Invalid)
+  if (!_keepStatusTag && _status != Status::Invalid)
   {
     way->setStatus(_status);
   }
@@ -210,6 +220,10 @@ RelationPtr OsmApiDbReader::_resultToRelation(const QSqlQuery& resultIterator, c
     LOG_VART(newRelationId);
   }
 
+  // Timestamp
+  QDateTime dt = resultIterator.value(ApiDb::RELATIONS_TIMESTAMP).toDateTime();
+  dt.setTimeSpec(Qt::UTC);
+
   RelationPtr relation(
     new Relation(
       _status,
@@ -218,8 +232,7 @@ RelationPtr OsmApiDbReader::_resultToRelation(const QSqlQuery& resultIterator, c
       "",
       resultIterator.value(ApiDb::RELATIONS_CHANGESET).toLongLong(),
       resultIterator.value(ApiDb::RELATIONS_VERSION).toLongLong(),
-      resultIterator.value(ApiDb::RELATIONS_TIMESTAMP).toUInt()));
-
+      dt.toMSecsSinceEpoch() / 1000));
   _parseAndSetTagsOnElement(relation);
 
   // These could be read out in batch at the same time the element results are read.
@@ -233,7 +246,7 @@ RelationPtr OsmApiDbReader::_resultToRelation(const QSqlQuery& resultIterator, c
   _parseAndSetTagsOnElement(relation);
   _updateMetadataOnElement(relation);
   //we want the reader's status to always override any existing status
-  if (!_keepFileStatus && _status != Status::Invalid)
+  if (!_keepStatusTag && _status != Status::Invalid)
   {
     relation->setStatus(_status);
   }

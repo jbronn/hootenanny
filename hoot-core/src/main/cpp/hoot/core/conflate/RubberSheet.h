@@ -30,6 +30,7 @@
 
 // hoot
 #include <hoot/core/ops/OsmMapOperation.h>
+#include <hoot/core/conflate/matching/NodeMatcher.h>
 
 // tgs
 #include <tgs/Interpolation/Interpolator.h>
@@ -39,8 +40,6 @@
 
 #include <ogr_spatialref.h>
 
-#include "NodeMatcher.h"
-
 namespace hoot
 {
 
@@ -49,8 +48,6 @@ class RubberSheetTest;
 class OsmMap;
 class Status;
 
-/**
- */
 class RubberSheet : public OsmMapOperation
 {
 public:
@@ -133,6 +130,8 @@ public:
 
    void setLogWarningWhenRequirementsNotFound(bool logWarning)
    { _logWarningWhenRequirementsNotFound = logWarning; }
+
+   virtual QString getDescription() const { return "Applies rubber sheeting to a map"; }
 
 private:
 

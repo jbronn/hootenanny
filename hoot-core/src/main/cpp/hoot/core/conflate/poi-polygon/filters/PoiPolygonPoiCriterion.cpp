@@ -22,13 +22,14 @@
  * This will properly maintain the copyright information. DigitalGlobe
  * copyrights will be updated automatically.
  *
- * @copyright Copyright (C) 2016, 2017 DigitalGlobe (http://www.digitalglobe.com/)
+ * @copyright Copyright (C) 2016, 2017, 2018 DigitalGlobe (http://www.digitalglobe.com/)
  */
 #include "PoiPolygonPoiCriterion.h"
 
 // hoot
-#include <hoot/core/conflate/poi-polygon/PoiPolygonMatch.h>
+#include <hoot/core/schema/OsmSchema.h>
 #include <hoot/core/util/Factory.h>
+#include "../PoiPolygonTagIgnoreListReader.h"
 
 namespace hoot
 {
@@ -41,7 +42,9 @@ PoiPolygonPoiCriterion::PoiPolygonPoiCriterion()
 
 bool PoiPolygonPoiCriterion::isSatisfied(const boost::shared_ptr<const Element> &e) const
 {
-  return PoiPolygonMatch::isPoi(*e);
+  return
+    OsmSchema::getInstance().isPoiPolygonPoi(
+      e, PoiPolygonTagIgnoreListReader::getInstance().getPoiTagIgnoreList());
 }
 
 }

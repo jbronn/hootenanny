@@ -29,7 +29,7 @@
 #define MERGERFACTORYJS_H
 
 // node.js
-#include <hoot/core/conflate/MergerCreator.h>
+#include <hoot/core/conflate/merging/MergerCreator.h>
 #include <hoot/js/SystemNodeJs.h>
 #include <hoot/js/util/DataConvertJs.h>
 
@@ -39,9 +39,11 @@ namespace hoot
 class MergerFactoryJs : public node::ObjectWrap
 {
 public:
+
  static void Init(v8::Handle<v8::Object> target);
 
 private:
+
   MergerFactoryJs();
   ~MergerFactoryJs();
 

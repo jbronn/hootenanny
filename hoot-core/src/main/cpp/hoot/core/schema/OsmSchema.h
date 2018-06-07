@@ -195,6 +195,7 @@ struct OsmSchemaCategory {
   }
 
 private:
+
   OsmSchemaCategory::Type _type;
 };
 
@@ -351,6 +352,8 @@ public:
   bool isAreaForStats(const Tags& t, ElementType type) const;
   bool isAreaForStats(const ConstElementPtr& e) const;
 
+  bool isNonBuildingArea(const ConstElementPtr& e) const;
+
   bool isBuilding(const Tags& t, ElementType type) const;
   bool isBuilding(const ConstElementPtr& e) const;
 
@@ -359,6 +362,28 @@ public:
    */
   bool isBuildingPart(const Tags& t, ElementType type) const;
   bool isBuildingPart(const ConstElementPtr& e) const;
+
+  /**
+   * Determines whether the element passed in is a polygon under the POI to Polygon conflation
+   * definition
+   *
+   * @param e element to determine type of
+   * @param tagIgnoreList if the input feature contains any of the tags in this list this method
+   * will always return false
+   * @return true if the element meets the specified criteria; false otherwise
+   */
+  bool isPoiPolygonPoly(const ConstElementPtr& e, const QStringList tagIgnoreList = QStringList());
+
+  /**
+   * Determines whether the element passed in is a POI under the POI to Polygon conflation
+   * definition
+   *
+   * @param e element to determine type of
+   * @param tagIgnoreList if the input feature contains any of the tags in this list this method
+   * will always return false
+   * @return true if the element meets the specified criteria; false otherwise
+   */
+  bool isPoiPolygonPoi(const ConstElementPtr& e, const QStringList tagIgnoreList = QStringList());
 
   /**
    * Returns true if this is a geometry collection.
@@ -392,9 +417,21 @@ public:
   bool isLinearWaterway(const Element &e);
 
   /**
+   * Returns true if the element is a roundabout
+   *
+   * This is not an exhaustive check, feel free to add more criteria
+   */
+  bool isRoundabout(const Tags& tags, ElementType type);
+
+  /**
    * Returns true if the specified element is a multi-use building.
    */
   bool isMultiUseBuilding(const Element &e);
+
+  /**
+   * Returns true if the specified element is multi-use.
+   */
+  bool isMultiUse(const Element &e);
 
   /**
    * Returns true if this is a list of values. Right now this just looks for a semicolon in value,
@@ -428,6 +465,11 @@ public:
    * @return true if the element has a name tag; false otherwie
    */
   bool hasName(const Element& element) const;
+
+  /**
+   * Returns true if the specified element is a railway.
+   */
+  bool isRailway(const Element &e);
 
   /**
    * Returns true if this is a reversed unidirectional way. (E.g. oneway=reverse)
@@ -467,7 +509,21 @@ public:
 
   void updateOrCreateVertex(const SchemaVertex& tv);
 
+  /**
+   * Determines tags are contained in a list of tags
+   *
+   * @param tags tags to examine
+   * @param tagList string tag list to check against
+   * @return true if any tag in a set of input tags is contained in a string list of tags; false
+   * otherwise
+   * @todo If we came up with a way to support key=* wildcards in the Tags class, then we could
+   * probably get rid of this method altogether and just check against the tags whereever this
+   * method is being called.
+   */
+  bool containsTagFromList(const Tags& tags, const QStringList tagList);
+
 private:
+
   // the templates we're including take a crazy long time to include, so I'm isolating the
   // implementation.
   OsmSchemaData* d;

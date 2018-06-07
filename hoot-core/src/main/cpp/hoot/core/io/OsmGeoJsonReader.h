@@ -100,6 +100,8 @@ public:
    */
   OsmMapPtr loadFromFile(QString path);
 
+  virtual QString supportedFormats() { return ".geojson"; }
+
 private:
 
   /**
@@ -196,11 +198,6 @@ private:
    * @brief _roles List of roles for the current relation, saved for recursive relations
    */
   std::queue<std::string> _roles;
-
-  /**
-   * @brief Add the bounding box of an element as a tag
-   */
-  bool _addBboxTag;
 };
 
 } // end namespace hoot
