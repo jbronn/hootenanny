@@ -68,7 +68,7 @@ jobs:
           name: 'Run Sonarqube Scan'
           command: |
             su-exec postgres pg_ctl -D $PGDATA -s start
-            su-exec rpmbuild bash -c "source SetupEnv.sh && sonar-build.sh && sonar-scan.sh -l $SONAR_CLOUD_KEY -j $SONAR_PROJECT -o $SONAR_ORGANIZATION -r $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME -b $CIRCLE_BRANCH"
+            su-exec rpmbuild bash -c "source SetupEnv.sh && /opt/sonar/bin/sonar-build.sh && /opt/sonar/bin/sonar-scan.sh -l $SONAR_CLOUD_KEY -j $SONAR_PROJECT -o $SONAR_ORGANIZATION -r $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME -b $CIRCLE_BRANCH"
 
 workflows:
   version: 2
