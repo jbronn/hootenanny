@@ -53,6 +53,22 @@ jobs:
       - run:
           name: 'Check Copyright Headers'
           command: ./scripts/copyright/UpdateAllCopyrightHeaders.sh
+  sonarqube:
+    working_directory: '/rpmbuild/hootenanny'
+    docker:
+      - image: hootenanny/rpmbuild-sonarqube@sha256:6502f15773e9afb90bb3480f6779fd85b69e012c7371db7a1e2f3d171ebabc70
+    steps:
+      - checkout
+      - run:
+          name: 'Git Submodules'
+          command: |
+            chown -R rpmbuild:rpmbuild .
+            su-exec rpmbuild git submodule update --init --recursive
+      - run:
+          name: 'Run Sonarqube Scan'
+          command: |
+            su-exec postgres pg_ctl -D $PGDATA -s start
+            su-exec rpmbuild bash -c "source SetupEnv.sh && sonar-build.sh && sonar-scan.sh -l $SONAR_CLOUD_KEY -j $SONAR_PROJECT -o $SONAR_ORGANIZATION -r $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME -b $CIRCLE_BRANCH"
 
 workflows:
   version: 2
@@ -63,3 +79,4 @@ workflows:
           requires:
             - archive-create
       - copyright
+      - sonarqube
