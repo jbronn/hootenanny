@@ -1597,7 +1597,7 @@ bool OsmSchema::isArea(const Tags& t, ElementType type) const
   //LOG_VART(t.toString());
 
   result |= isBuilding(t, type);
-  result |= t.isTrue("building:part");
+  result |= t.isTrue(MetadataTags::BuildingPart());
   result |= t.isTrue("area");
 
   // if at least one of the tags is marked as an area, but not a linestring tag then we consider
@@ -1612,7 +1612,7 @@ bool OsmSchema::isArea(const Tags& t, ElementType type) const
       break;
     }
   }
-  LOG_VART(result);
+  //LOG_VART(result);
 
   return result;
 } 
@@ -1728,7 +1728,7 @@ bool OsmSchema::isAreaForStats(const Tags& t, ElementType type) const
   }
 
   // don't process if a building part
-  if (t.isTrue("building:part"))
+  if (t.isTrue(MetadataTags::BuildingPart()))
   {
     return false;
   }
@@ -1782,7 +1782,7 @@ bool OsmSchema::isBuilding(const ConstElementPtr& e) const
 bool OsmSchema::isBuildingPart(const Tags& t, ElementType type) const
 {
   bool result = false;
-  if (type != ElementType::Node && t.isTrue("building:part"))
+  if (type != ElementType::Node && t.isTrue(MetadataTags::BuildingPart()))
   {
     result = true;
   }
